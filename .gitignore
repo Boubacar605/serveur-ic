@@ -1,0 +1,37 @@
+# Dépendances
+node_modules/
+
+# Construction
+dist/
+build/
+
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+
+# Éditeurs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Tests
+coverage/
+.nyc_output/
+
+# Journaux
+logs/
+*.log
+npm-debug.log*
+
+# Claude
+.claude/
