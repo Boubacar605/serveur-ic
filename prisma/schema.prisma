@@ -1,0 +1,503 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleEnum {
+  TRAVAILLEUR
+  RECRUTEUR
+  AGENT
+  ADMINISTRATEUR
+
+  @@map("role_enum")
+}
+
+enum StatutCompteEnum {
+  ACTIF
+  SUSPENDU
+  SUPPRIME
+
+  @@map("statut_compte_enum")
+}
+
+enum TypeRecruteurEnum {
+  PARTICULIER
+  ENTREPRISE
+
+  @@map("type_recruteur_enum")
+}
+
+enum NiveauZoneEnum {
+  REGION
+  DEPARTEMENT
+  COMMUNE
+  QUARTIER
+
+  @@map("niveau_zone_enum")
+}
+
+enum TypeHoraireEnum {
+  TRAVAIL_JOURNALIER
+  DEMI_JOURNEE
+  CRENEAU_PRECIS
+
+  @@map("type_horaire_enum")
+}
+
+enum ModeAttributionEnum {
+  PREMIER_ARRIVE
+  SELECTION
+
+  @@map("mode_attribution_enum")
+}
+
+enum StatutMissionEnum {
+  BROUILLON
+  PUBLIEE
+  PARTIELLEMENT_POURVUE
+  POURVUE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+  EXPIREE
+  SUSPENDUE
+  CLOTUREE
+
+  @@map("statut_mission_enum")
+}
+
+enum StatutCandidatureEnum {
+  PROPOSEE
+  INTERESSE
+  SELECTIONNEE
+  CONFIRMEE
+  REFUSEE
+  EXPIREE
+  ANNULEE
+  LISTE_ATTENTE
+  RETIREE
+
+  @@map("statut_candidature_enum")
+}
+
+enum PeriodeDispoEnum {
+  JOURNEE
+  MATIN
+  APRES_MIDI
+  CRENEAU
+
+  @@map("periode_dispo_enum")
+}
+
+enum CanalEnum {
+  APPLICATION
+  WHATSAPP
+  SMS
+  APPEL
+
+  @@map("canal_enum")
+}
+
+enum PresenceEnum {
+  NON_SAISIE
+  PRESENT
+  ABSENT
+
+  @@map("presence_enum")
+}
+
+enum StatutMessageEnum {
+  EN_FILE
+  ENVOYE
+  LIVRE
+  LU
+  ECHEC
+
+  @@map("statut_message_enum")
+}
+
+model Profiles {
+  id        String             @id @db.Uuid
+  nom       String             @db.VarChar(255)
+  telephone String?            @db.VarChar(30)
+  role      RoleEnum           @default(TRAVAILLEUR)
+  statut    StatutCompteEnum   @default(ACTIF)
+  langue    String             @db.VarChar(10)
+  photoUrl  String?            @map("photo_url") @db.Text
+  isPremium Boolean            @default(false) @map("is_premium")
+  createdAt DateTime           @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime           @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt DateTime?          @db.Timestamptz(6) @map("deleted_at")
+
+  agents                 Agents?
+  travailleurs           Travailleurs?
+  recruteurs             Recruteurs?
+  evaluationsAuteur      Evaluations[] @relation("EvaluationAuteur")
+  evaluationsCible       Evaluations[] @relation("EvaluationCible")
+
+  @@unique([telephone])
+  @@index([role])
+  @@index([statut])
+  @@index([telephone])
+  @@map("profiles")
+}
+
+model Agents {
+  userId         String   @id @map("user_id") @db.Uuid
+  perimetre      String?  @db.Text
+  codeParrainage String?  @unique @map("code_parrainage") @db.VarChar(50)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt      DateTime? @db.Timestamptz(6) @map("deleted_at")
+
+  user         Profiles      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  travailleurs Travailleurs[]
+
+  @@map("agents")
+}
+
+model Travailleurs {
+  userId              String   @id @map("user_id") @db.Uuid
+  scoreFiabilite      Decimal? @map("score_fiabilite") @db.Decimal(5, 2)
+  possedeSonMateriel  Boolean  @default(false) @map("possede_son_materiel")
+  agentId             String?  @map("agent_id") @db.Uuid
+  createdAt           DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt           DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt           DateTime? @db.Timestamptz(6) @map("deleted_at")
+
+  user              Profiles            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent             Agents?             @relation(fields: [agentId], references: [userId], onDelete: SetNull)
+  profilMetiers     ProfilMetiers[]
+  travailleurZones  TravailleurZones[]
+  disponibilites    Disponibilites[]
+  candidatures      Candidatures[]
+  commissions       Commissions[]
+
+  @@index([agentId])
+  @@index([scoreFiabilite])
+  @@map("travailleurs")
+}
+
+model Recruteurs {
+  userId          String             @id @map("user_id") @db.Uuid
+  typeRecruteur   TypeRecruteurEnum  @map("type_recruteur")
+  raisonSociale   String             @map("raison_sociale") @db.VarChar(255)
+  createdAt       DateTime           @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt       DateTime           @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt       DateTime?          @db.Timestamptz(6) @map("deleted_at")
+
+  user     Profiles  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missions Missions[]
+
+  @@map("recruteurs")
+}
+
+model Metiers {
+  id        String   @id @db.Uuid
+  code      String   @unique @db.VarChar(50)
+  libelle   String   @unique @db.VarChar(255)
+  categorie String   @db.VarChar(100)
+  actif     Boolean  @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt DateTime? @db.Timestamptz(6) @map("deleted_at")
+
+  profilMetiers ProfilMetiers[]
+  missions     Missions[]
+
+  @@index([categorie])
+  @@index([actif])
+  @@map("metiers")
+}
+
+model ProfilMetiers {
+  id               String   @id @db.Uuid
+  travailleurId    String   @map("travailleur_id") @db.Uuid
+  metierId        String   @map("metier_id") @db.Uuid
+  experienceAnnees Int      @default(0) @map("experience_annees")
+  createdAt        DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt        DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt        DateTime? @db.Timestamptz(6) @map("deleted_at")
+
+  travailleur Travailleurs @relation(fields: [travailleurId], references: [userId], onDelete: Cascade)
+  metier      Metiers      @relation(fields: [metierId], references: [id], onDelete: Restrict)
+
+  @@unique([travailleurId, metierId])
+  @@map("profil_metiers")
+}
+
+model Zones {
+  id        String        @id @db.Uuid
+  nom       String        @db.VarChar(255)
+  niveau    NiveauZoneEnum
+  parentId  String?       @map("parent_id") @db.Uuid
+  createdAt DateTime      @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt DateTime      @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt DateTime?     @db.Timestamptz(6) @map("deleted_at")
+
+  parent     Zones?              @relation("ZoneHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children   Zones[]             @relation("ZoneHierarchy")
+  missions   Missions[]
+  zonesLinks TravailleurZones[]
+
+  @@index([parentId])
+  @@index([niveau])
+  @@map("zones")
+}
+
+model TravailleurZones {
+  travailleurId String   @map("travailleur_id") @db.Uuid
+  zoneId       String   @map("zone_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+
+  travailleur Travailleurs @relation(fields: [travailleurId], references: [userId], onDelete: Cascade)
+  zone       Zones        @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@id([travailleurId, zoneId])
+  @@map("travailleur_zones")
+}
+
+model Disponibilites {
+  id                  String          @id @db.Uuid
+  travailleurId       String          @map("travailleur_id") @db.Uuid
+  dateDisponibilite   DateTime        @db.Date @map("date_disponibilite")
+  periode             PeriodeDispoEnum
+  heureDebut          DateTime?       @db.Time(6) @map("heure_debut")
+  heureFin            DateTime?       @db.Time(6) @map("heure_fin")
+  createdAt           DateTime        @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt           DateTime        @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt           DateTime?       @db.Timestamptz(6) @map("deleted_at")
+
+  travailleur Travailleurs @relation(fields: [travailleurId], references: [userId], onDelete: Cascade)
+
+  @@index([travailleurId])
+  @@index([dateDisponibilite])
+  @@index([travailleurId, dateDisponibilite])
+  @@map("disponibilites")
+}
+
+model Missions {
+  id                 String             @id @db.Uuid
+  recruteurId        String             @map("recruteur_id") @db.Uuid
+  metierId           String             @map("metier_id") @db.Uuid
+  zoneId             String             @map("zone_id") @db.Uuid
+  lieu               String?            @db.VarChar(255)
+  description        String?            @db.Text
+  nombrePostes       Int                @map("nombre_postes")
+  remunerationFcfa   BigInt             @map("remuneration_fcfa")
+  dateMission        DateTime           @db.Date @map("date_mission")
+  datePublication    DateTime?          @db.Date @map("date_publication")
+  dateCloture        DateTime?          @db.Date @map("date_cloture")
+  typeHoraire        TypeHoraireEnum?   @map("type_horaire")
+  heureDebut         DateTime?          @db.Time(6) @map("heure_debut")
+  heureFin           DateTime?          @db.Time(6) @map("heure_fin")
+  urgente            Boolean            @default(false)
+  modeAttribution    ModeAttributionEnum @default(PREMIER_ARRIVE) @map("mode_attribution")
+  statut            StatutMissionEnum  @default(BROUILLON)
+  createdAt          DateTime           @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(6) @map("updated_at")
+  deletedAt          DateTime?          @db.Timestamptz(6) @map("deleted_at")
+
+  recruteur         Recruteurs               @relation(fields: [recruteurId], references: [userId], onDelete: Cascade)
+  metier            Metiers                  @relation(fields: [metierId], references: [id], onDelete: Restrict)
+  zone              Zones                   @relation(fields: [zoneId], references: [id], onDelete: Restrict)
+  candidatures      Candidatures[]
+  missionStatusHistory MissionStatusHistory[]
+  evaluations       Evaluations[]
+  notifications      Notifications[]
+  commissions       Commissions[]
+
+  @@index([statut])
+  @@index([dateMission])
+  @@index([recruteurId])
+  @@index([metierId])
+  @@index([zoneId])
+  @@index([urgente])
+  @@index([statut, dateMission])
+  @@map("missions")
+}
+
+model MissionStatusHistory {
+  id            String            @id @default(uuid()) @db.Uuid
+  missionId     String            @map("mission_id") @db.Uuid
+  ancienStatut  StatutMissionEnum? @map("ancien_statut")
+  nouveauStatut StatutMissionEnum @map("nouveau_statut")
+  changedBy     String?           @map("changed_by") @db.Uuid
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  mission Missions @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@index([createdAt])
+  @@map("mission_status_history")
+}
+
+model Candidatures {
+  id            String                 @id @db.Uuid
+  missionId     String                 @map("mission_id") @db.Uuid
+  travailleurId String                 @map("travailleur_id") @db.Uuid
+  statut        StatutCandidatureEnum
+  canal         CanalEnum
+  dateReponse   DateTime?              @db.Timestamptz(6) @map("date_reponse")
+  createdAt     DateTime               @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  mission               Missions                 @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  travailleur           Travailleurs             @relation(fields: [travailleurId], references: [userId], onDelete: Cascade)
+  confirmation          Confirmations?
+  candidatureStatusHistory CandidatureStatusHistory[]
+
+  @@unique([missionId, travailleurId])
+  @@index([missionId])
+  @@index([travailleurId])
+  @@index([statut])
+  @@index([missionId, statut])
+  @@map("candidatures")
+}
+
+model CandidatureStatusHistory {
+  id             String                 @id @default(uuid()) @db.Uuid
+  candidatureId  String                 @map("candidature_id") @db.Uuid
+  ancienStatut   StatutCandidatureEnum? @map("ancien_statut")
+  nouveauStatut  StatutCandidatureEnum  @map("nouveau_statut")
+  changedBy      String?                @map("changed_by") @db.Uuid
+  createdAt      DateTime               @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  candidature Candidatures @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+
+  @@map("candidature_status_history")
+}
+
+model Confirmations {
+  id                String        @id @db.Uuid
+  candidatureId     String        @unique @map("candidature_id") @db.Uuid
+  dateConfirmation   DateTime?     @db.Date @map("date_confirmation")
+  presence          PresenceEnum  @default(NON_SAISIE)
+  createdAt         DateTime      @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  candidature Candidatures @relation(fields: [candidatureId], references: [id], onDelete: Cascade)
+
+  @@map("confirmations")
+}
+
+model Evaluations {
+  id          String   @id @db.Uuid
+  missionId   String   @map("mission_id") @db.Uuid
+  auteurId    String   @map("auteur_id") @db.Uuid
+  cibleId     String   @map("cible_id") @db.Uuid
+  note        Int      @db.SmallInt
+  commentaire String?  @db.Text
+  createdAt   DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  mission Missions @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  auteur  Profiles @relation("EvaluationAuteur", fields: [auteurId], references: [id], onDelete: Restrict)
+  cible   Profiles @relation("EvaluationCible", fields: [cibleId], references: [id], onDelete: Restrict)
+
+  @@index([missionId])
+  @@index([cibleId])
+  @@map("evaluations")
+}
+
+model Notifications {
+  id               String          @id @db.Uuid
+  utilisateurId    String          @map("utilisateur_id") @db.Uuid
+  missionId        String?         @map("mission_id") @db.Uuid
+  type             String          @db.VarChar(50)
+  canal            CanalEnum
+  statut           StatutMessageEnum @default(EN_FILE)
+  idMessageExterne String?         @map("id_message_externe") @db.VarChar(255)
+  dateEnvoi        DateTime?       @db.Timestamptz(6) @map("date_envoi")
+  lu               Boolean         @default(false)
+  luAt             DateTime?       @map("lu_at") @db.Timestamptz(6)
+  clickedAt        DateTime?       @map("clicked_at") @db.Timestamptz(6)
+  createdAt        DateTime        @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt        DateTime        @updatedAt @db.Timestamptz(6) @map("updated_at")
+
+  mission Missions? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  events  NotificationEvents[]
+
+  @@index([utilisateurId])
+  @@index([statut])
+  @@index([canal])
+  @@index([dateEnvoi])
+  @@map("notifications")
+}
+
+model NotificationEvents {
+  id            String          @id @db.Uuid
+  notificationId String         @map("notification_id") @db.Uuid
+  status        StatutMessageEnum
+  payload       Json            @default("{}") @db.JsonB
+  createdAt     DateTime        @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  notification Notifications @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@map("notification_events")
+}
+
+model Consentements {
+  id                String   @id @db.Uuid
+  utilisateurId     String   @map("utilisateur_id") @db.Uuid
+  canal             CanalEnum
+  accorde           Boolean  @default(false)
+  dateConsentement  DateTime @db.Timestamptz(6) @map("date_consentement")
+  recueilliPar      String?  @map("recueilli_par") @db.Uuid
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt         DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+
+  @@map("consentements")
+}
+
+model Commissions {
+  id                 String   @id @db.Uuid
+  travailleurId      String   @map("travailleur_id") @db.Uuid
+  missionId          String   @map("mission_id") @db.Uuid
+  montantBrut        BigInt   @map("montant_brut")
+  pourcentage        Decimal  @db.Decimal(5, 2)
+  montantCommission  BigInt   @map("montant_commission")
+  montantNet         BigInt   @map("montant_net")
+  createdAt          DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt          DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+
+  travailleur Travailleurs @relation(fields: [travailleurId], references: [userId], onDelete: Cascade)
+  mission     Missions     @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  payments    CommissionPayments[]
+
+  @@unique([travailleurId, missionId])
+  @@index([travailleurId])
+  @@index([missionId])
+  @@index([createdAt])
+  @@map("commissions")
+}
+
+model CommissionPayments {
+  id            String   @id @db.Uuid
+  commissionId  String   @map("commission_id") @db.Uuid
+  montant       BigInt
+  methode       String?  @db.VarChar(50)
+  reference     String?  @db.VarChar(255)
+  enregistrePar String?  @map("enregistre_par") @db.Uuid
+  createdAt     DateTime @default(now()) @db.Timestamptz(6) @map("created_at")
+
+  commission Commissions @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@index([commissionId])
+  @@index([createdAt])
+  @@map("commission_payments")
+}
+
+model PlatformSettings {
+  id          String   @id @db.Uuid
+  settingKey  String   @unique @map("setting_key") @db.VarChar(100)
+  settingValue String? @map("setting_value") @db.Text
+  description String? @db.Text
+  createdAt   DateTime  @default(now()) @db.Timestamptz(6) @map("created_at")
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(6) @map("updated_at")
+
+  @@map("platform_settings")
+}

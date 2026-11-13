@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: xeuysil-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: xeuy
+      POSTGRES_PASSWORD: xeuy_dev
+      POSTGRES_DB: xeuy
+    ports:
+      - "5432:5432"
+    volumes:
+      - xeuysil_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xeuy -d xeuy"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xeuysil-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_PREFIX: api/v1
+      DATABASE_URL: postgresql://xeuy:xeuy_dev@postgres:5432/xeuy?schema=public
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_PICTURE_BUCKET: ${SUPABASE_PICTURE_BUCKET:-pictureProfile}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      COMMISSION_PERCENT: ${COMMISSION_PERCENT:-10}
+      MAX_COMMISSION_DEBT: ${MAX_COMMISSION_DEBT:-5000}
+      WHATSAPP_API_BASE_URL: ${WHATSAPP_API_BASE_URL:-https://graph.facebook.com}
+      WHATSAPP_API_VERSION: ${WHATSAPP_API_VERSION:-v21.0}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET}
+    ports:
+      - "3000:3000"
+
+volumes:
+  xeuysil_pg_data:

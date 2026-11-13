@@ -1,0 +1,5610 @@
+openapi: "3.0.0"
+paths:
+  /auth/register/worker:
+    post:
+      operationId: "AuthController_registerWorker"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterWorkerDto"
+      responses:
+        201:
+          description: "Worker account created"
+        400:
+          description: "Invalid registration data"
+        404:
+          description: "Agent referral code not found"
+        409:
+          description: "Email or phone already exists"
+      summary: "Register a worker through Supabase Auth"
+      tags:
+        - "Auth"
+  /auth/register/recruiter:
+    post:
+      operationId: "AuthController_registerRecruiter"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRecruiterDto"
+      responses:
+        201:
+          description: "Recruiter account created"
+        400:
+          description: "Invalid registration data"
+        409:
+          description: "Email or phone already exists"
+      summary: "Register a recruiter through Supabase Auth"
+      tags:
+        - "Auth"
+  /auth/login:
+    post:
+      operationId: "AuthController_login"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+      responses:
+        200:
+          description: "Access and refresh tokens"
+        401:
+          description: "Invalid credentials"
+      summary: "Authenticate through Supabase Auth"
+      tags:
+        - "Auth"
+  /auth/logout:
+    post:
+      operationId: "AuthController_logout"
+      parameters:
+        -
+          name: "authorization"
+          required: true
+          in: "header"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Session revoked"
+        401:
+          description: "Missing or invalid access token"
+      security:
+        -
+          bearer: []
+      summary: "Revoke the current Supabase session"
+      tags:
+        - "Auth"
+  /auth/refresh:
+    post:
+      operationId: "AuthController_refresh"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenDto"
+      responses:
+        200:
+          description: "New access and refresh tokens"
+        401:
+          description: "Invalid or expired refresh token"
+      summary: "Refresh a Supabase session"
+      tags:
+        - "Auth"
+  /auth/forgot-password:
+    post:
+      operationId: "AuthController_forgotPassword"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordDto"
+      responses:
+        200:
+          description: "Password reset request accepted"
+        400:
+          description: "Invalid email"
+      summary: "Send a password reset email"
+      tags:
+        - "Auth"
+  /auth/reset-password:
+    post:
+      operationId: "AuthController_resetPassword"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordDto"
+      responses:
+        200:
+          description: "Password updated"
+        400:
+          description: "Invalid recovery token or password confirmation"
+      summary: "Set a new password using a recovery token"
+      tags:
+        - "Auth"
+  /auth/me:
+    get:
+      operationId: "AuthController_me"
+      parameters: []
+      responses:
+        200:
+          description: "Authenticated profile"
+        401:
+          description: "Missing or invalid access token"
+      security:
+        -
+          bearer: []
+      summary: "Get the authenticated XeuySil profile"
+      tags:
+        - "Auth"
+  /avatars/default.svg:
+    get:
+      operationId: "AvatarController_getDefaultAvatar"
+      parameters: []
+      responses:
+        200:
+          description: "Default avatar SVG"
+          content:
+            "image/svg+xml":
+              schema:
+                type: "string"
+      summary: "Default profile avatar served when a user has no uploaded picture"
+      tags:
+        - "Avatars"
+  /bootstrap:
+    get:
+      operationId: "BootstrapController_getBootstrap"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BootstrapResponseDto"
+              example:
+                user:
+                  id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                  email: "worker@example.com"
+                  nom: "Kouassi Jean"
+                  telephone: "+2250701020304"
+                  role: "TRAVAILLEUR"
+                  statut: "ACTIF"
+                  langue: "fr"
+                  photoUrl: null
+                permissions:
+                  - "dashboard:read"
+                  - "profile:read"
+                  - "applications:create"
+                notifications:
+                  unreadCount: 2
+                dashboard:
+                  role: "TRAVAILLEUR"
+                  profile:
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                    nom: "Kouassi Jean"
+                    telephone: "+2250701020304"
+                    langue: "fr"
+                    scoreFiabilite: 92.5
+                    possedeSonMateriel: true
+                  stats:
+                    scoreFiabilite: 92.5
+                    applicationsTotal: 24
+                    applicationsPending: 3
+                    applicationsConfirmed: 5
+                    missionsCompleted: 12
+                    grossRevenue: 540000
+                    totalCommission: 54000
+                    netRevenue: 486000
+                  upcomingMissions: []
+                  recentApplications: []
+                  notifications:
+                    unreadCount: 2
+                settings:
+                  commissionPercent: 10
+      security:
+        -
+          bearer: []
+      summary: "Load the authenticated user application context"
+      tags:
+        - "Bootstrap"
+  /dashboard:
+    get:
+      operationId: "DashboardController_getDashboard"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    $ref: "#/components/schemas/WorkerDashboardDto"
+                  -
+                    $ref: "#/components/schemas/RecruiterDashboardDto"
+                  -
+                    $ref: "#/components/schemas/AgentDashboardDto"
+                  -
+                    $ref: "#/components/schemas/AdminDashboardDto"
+      security:
+        -
+          bearer: []
+      summary: "Get the role-specific dashboard for the authenticated user"
+      tags:
+        - "Dashboard"
+  /reference/jobs:
+    get:
+      operationId: "MetiersController_list"
+      parameters: []
+      responses:
+        200:
+          description: "Active job references"
+      summary: "List active job references"
+      tags:
+        - "Reference - Jobs"
+  /reference/jobs/{id}:
+    get:
+      operationId: "MetiersController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Job reference"
+        404:
+          description: "Job reference not found"
+      summary: "Get a job reference"
+      tags:
+        - "Reference - Jobs"
+  /reference/zones:
+    get:
+      operationId: "ZonesController_list"
+      parameters: []
+      responses:
+        200:
+          description: "Geographic zone references"
+      summary: "List geographic zone references"
+      tags:
+        - "Reference - Zones"
+  /reference/zones/{id}:
+    get:
+      operationId: "ZonesController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Geographic zone"
+        404:
+          description: "Zone not found"
+      summary: "Get a geographic zone with its parent and children"
+      tags:
+        - "Reference - Zones"
+  /me/profile:
+    get:
+      operationId: "WorkersController_getMyProfile"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfileResponseDto"
+              example:
+                id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                nom: "Kouassi Jean"
+                telephone: "+2250701020304"
+                langue: "fr"
+                scoreFiabilite: 92.5
+                possedeSonMateriel: true
+                agent:
+                  id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad63"
+                  nom: "Awa Traoré"
+                  codeParrainage: "AGENT-001"
+                metiers:
+                  -
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad64"
+                    code: "MACON"
+                    libelle: "Maçon"
+                    categorie: "BTP"
+                    experienceAnnees: 4
+                zones:
+                  -
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+                    nom: "Cocody"
+                    niveau: "COMMUNE"
+                    parentId: null
+        404:
+          description: "Worker profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Get the authenticated worker profile with jobs, zones, and agent"
+      tags:
+        - "Workers"
+    put:
+      operationId: "WorkersController_updateMyProfile"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkerProfileDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerProfileResponseDto"
+        400:
+          description: "Invalid profile data"
+        404:
+          description: "Worker, job, or zone not found"
+      security:
+        -
+          bearer: []
+      summary: "Update worker settings and synchronize job and zone references"
+      tags:
+        - "Workers"
+  /me/earnings:
+    get:
+      operationId: "WorkersController_getMyEarnings"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerEarningsDto"
+              example:
+                grossRevenue: 540000
+                totalCommission: 54000
+                netRevenue: 486000
+                completedMissions: 12
+      security:
+        -
+          bearer: []
+      summary: "Get completed mission revenue and commissions"
+      tags:
+        - "Workers"
+  /me/stats:
+    get:
+      operationId: "WorkersController_getMyStats"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerStatsDto"
+              example:
+                scoreFiabilite: 92.5
+                totalApplications: 24
+                pendingApplications: 3
+                acceptedApplications: 5
+                completedMissions: 12
+                nextMissionDate: "2026-12-01"
+      security:
+        -
+          bearer: []
+      summary: "Get worker application and mission statistics"
+      tags:
+        - "Workers"
+  /me/applications:
+    get:
+      operationId: "WorkersController_getMyApplications"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "List the authenticated worker applications"
+      tags:
+        - "Workers"
+  /me/missions:
+    get:
+      operationId: "WorkersController_getMyMissions"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "List the authenticated worker confirmed missions"
+      tags:
+        - "Workers"
+  /workers/{id}:
+    get:
+      operationId: "WorkersController_getWorker"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerPublicProfileDto"
+              example:
+                id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                nom: "Kouassi Jean"
+                scoreFiabilite: 92.5
+                metiers:
+                  -
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad64"
+                    code: "MACON"
+                    libelle: "Maçon"
+                    categorie: "BTP"
+                    experienceAnnees: 4
+                zones:
+                  -
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+                    nom: "Cocody"
+                    niveau: "COMMUNE"
+                    parentId: null
+        404:
+          description: "Worker profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Get a limited worker profile for agents, recruiters, and admins"
+      tags:
+        - "Workers"
+  /recruiters/me:
+    get:
+      operationId: "RecruitersController_getMe"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecruiterProfileDto"
+        404:
+          description: "Recruiter profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Get the authenticated recruiter profile"
+      tags:
+        - "Recruiters"
+    put:
+      operationId: "RecruitersController_updateMe"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecruiterDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecruiterProfileDto"
+        404:
+          description: "Recruiter profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Update the authenticated recruiter company name"
+      tags:
+        - "Recruiters"
+  /recruiters/dashboard:
+    get:
+      operationId: "RecruitersController_getDashboard"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "Get the recruiter dashboard"
+      tags:
+        - "Recruiters"
+  /agents/me:
+    get:
+      operationId: "AgentsController_getMe"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProfileDto"
+        404:
+          description: "Agent profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Get the authenticated agent profile"
+      tags:
+        - "Agents"
+    put:
+      operationId: "AgentsController_updateMe"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProfileDto"
+        404:
+          description: "Agent profile not found"
+      security:
+        -
+          bearer: []
+      summary: "Update the authenticated agent coverage area"
+      tags:
+        - "Agents"
+  /agents/dashboard:
+    get:
+      operationId: "AgentsController_getDashboard"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "Get the agent dashboard"
+      tags:
+        - "Agents"
+  /agents/workers:
+    get:
+      operationId: "AgentsController_getWorkers"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            type: "number"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentWorkerListDto"
+      security:
+        -
+          bearer: []
+      summary: "List workers managed by the authenticated agent"
+      tags:
+        - "Agents"
+  /agents/proposals:
+    post:
+      operationId: "AgentsController_createProposal"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProposalDto"
+      responses:
+        201:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentProposalResponseDto"
+        403:
+          description: "Worker is not managed by this agent"
+        404:
+          description: "Agent, worker, or mission not found"
+        409:
+          description: "Mission closed or worker already proposed"
+      security:
+        -
+          bearer: []
+      summary: "Propose a mission to a managed worker"
+      tags:
+        - "Agents"
+  /applications:
+    post:
+      operationId: "ApplicationsController_create"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApplicationDto"
+      responses:
+        201:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponseDto"
+        403:
+          description: "COMMISSION_PAYMENT_REQUIRED: Veuillez régulariser vos commissions avant de pouvoir recevoir ou postuler à de nouvelles missions.\n\nOnly workers can apply"
+        404:
+          description: "Worker or mission not found"
+        409:
+          description: "Mission is closed or application already exists"
+      security:
+        -
+          bearer: []
+      summary: "Apply to a published mission"
+      tags:
+        - "Applications"
+    get:
+      operationId: "ApplicationsController_list"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            example: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+            type: "number"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationListDto"
+              example:
+                data: []
+                page: 1
+                limit: 20
+                total: 0
+                totalPages: 0
+      security:
+        -
+          bearer: []
+      summary: "List applications belonging to the current worker or recruiter"
+      tags:
+        - "Applications"
+  /applications/{id}:
+    get:
+      operationId: "ApplicationsController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationDetailsDto"
+        403:
+          description: "Application belongs to another user or recruiter"
+        404:
+          description: "Application not found"
+      security:
+        -
+          bearer: []
+      summary: "Get an application and its status history"
+      tags:
+        - "Applications"
+  /applications/{id}/select:
+    post:
+      operationId: "ApplicationsController_select"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponseDto"
+        400:
+          description: "Invalid application status transition"
+        403:
+          description: "Only the mission recruiter can select"
+        404:
+          description: "Application not found"
+      security:
+        -
+          bearer: []
+      summary: "Select an interested worker (INTERESSE to SELECTIONNEE)"
+      tags:
+        - "Applications"
+  /applications/{id}/confirm:
+    post:
+      operationId: "ApplicationsController_confirm"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponseDto"
+        400:
+          description: "Invalid application status transition"
+        403:
+          description: "Only the worker can confirm their application"
+        404:
+          description: "Application not found"
+        409:
+          description: "Mission is no longer available"
+      security:
+        -
+          bearer: []
+      summary: "Confirm a selected worker participation"
+      tags:
+        - "Applications"
+  /applications/{id}/reject:
+    post:
+      operationId: "ApplicationsController_reject"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponseDto"
+        400:
+          description: "Invalid application status transition"
+        403:
+          description: "Only the mission recruiter can reject"
+        404:
+          description: "Application not found"
+      security:
+        -
+          bearer: []
+      summary: "Reject an interested worker (INTERESSE to REFUSEE)"
+      tags:
+        - "Applications"
+  /applications/{id}/withdraw:
+    post:
+      operationId: "ApplicationsController_withdraw"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationResponseDto"
+        400:
+          description: "Invalid application status transition"
+        403:
+          description: "Only the applicant can withdraw"
+        404:
+          description: "Application not found"
+      security:
+        -
+          bearer: []
+      summary: "Withdraw an interested application (INTERESSE to RETIRE)"
+      tags:
+        - "Applications"
+  /missions/public:
+    get:
+      operationId: "MissionsController_listPublic"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            example: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          description: "Maximum 100"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+            type: "number"
+        -
+          name: "metierId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+        -
+          name: "zoneId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+        -
+          name: "urgente"
+          required: false
+          in: "query"
+          schema:
+            example: true
+            type: "boolean"
+        -
+          name: "dateMission"
+          required: false
+          in: "query"
+          schema:
+            format: "date"
+            example: "2027-01-15"
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionListDto"
+              example:
+                data:
+                  -
+                    id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                    statut: "PUBLIEE"
+                    dateMission: "2027-01-15"
+                    nombrePostes: 3
+                    nombreCandidatures: 4
+                page: 1
+                limit: 20
+                total: 1
+                totalPages: 1
+      summary: "List published upcoming missions with filters and pagination"
+      tags:
+        - "Missions"
+  /missions/recommended:
+    get:
+      operationId: "MissionsController_listRecommended"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/RecommendedMissionDto"
+        403:
+          description: "Only workers can access recommendations"
+      security:
+        -
+          bearer: []
+      summary: "List published missions ranked for the authenticated worker"
+      tags:
+        - "Missions"
+  /missions:
+    get:
+      operationId: "MissionsController_list"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            example: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          description: "Maximum 100"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+            type: "number"
+        -
+          name: "metierId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+        -
+          name: "zoneId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+        -
+          name: "urgente"
+          required: false
+          in: "query"
+          schema:
+            example: true
+            type: "boolean"
+        -
+          name: "dateMission"
+          required: false
+          in: "query"
+          schema:
+            format: "date"
+            example: "2027-01-15"
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionListDto"
+      security:
+        -
+          bearer: []
+      summary: "List the authenticated recruiter missions"
+      tags:
+        - "Missions"
+    post:
+      operationId: "MissionsController_create"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMissionDto"
+      responses:
+        201:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        403:
+          description: "Only recruiters can create missions"
+        404:
+          description: "Recruiter, job, or zone not found"
+      security:
+        -
+          bearer: []
+      summary: "Create a mission in draft status"
+      tags:
+        - "Missions"
+  /missions/{id}:
+    get:
+      operationId: "MissionsController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionDetailsDto"
+        404:
+          description: "Mission not found"
+      summary: "Get a published upcoming mission with recruiter, counts, and remaining seats"
+      tags:
+        - "Missions"
+    patch:
+      operationId: "MissionsController_update"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMissionDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Mission status does not allow updates"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Update an owned non-terminal mission"
+      tags:
+        - "Missions"
+    delete:
+      operationId: "MissionsController_remove"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        204:
+          description: "Mission deleted"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Soft-delete an owned mission"
+      tags:
+        - "Missions"
+  /missions/{id}/publish:
+    post:
+      operationId: "MissionsController_publish"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Invalid status transition or expired mission"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Publish an owned draft mission and record its status history"
+      tags:
+        - "Missions"
+  /missions/{id}/close:
+    post:
+      operationId: "MissionsController_close"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Invalid status transition"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Close an owned published mission and record its status history"
+      tags:
+        - "Missions"
+  /missions/{id}/cancel:
+    post:
+      operationId: "MissionsController_cancel"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Invalid status transition"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Cancel an owned published mission and record its status history"
+      tags:
+        - "Missions"
+  /missions/{id}/start:
+    post:
+      operationId: "MissionsController_start"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Only a POURVUE mission can start"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Start an owned filled mission (POURVUE to EN_COURS)"
+      tags:
+        - "Missions"
+  /missions/{id}/complete:
+    post:
+      operationId: "MissionsController_complete"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionResponseDto"
+        400:
+          description: "Only an EN_COURS mission can be completed"
+        403:
+          description: "Mission belongs to another recruiter"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Complete an owned in-progress mission and generate worker commissions atomically"
+      tags:
+        - "Missions"
+  /availability:
+    get:
+      operationId: "AvailabilityController_list"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/AvailabilityResponseDto"
+              example:
+                -
+                  id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                  dateDisponibilite: "2027-01-15"
+                  periode: "MATIN"
+                  heureDebut: null
+                  heureFin: null
+                  createdAt: "2026-11-11T09:00:00.000Z"
+                  updatedAt: "2026-11-11T09:00:00.000Z"
+      security:
+        -
+          bearer: []
+      summary: "List the authenticated worker availabilities"
+      tags:
+        - "Availability"
+    post:
+      operationId: "AvailabilityController_create"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAvailabilityDto"
+      responses:
+        201:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponseDto"
+        400:
+          description: "Past date or invalid time slot"
+        409:
+          description: "Availability already exists for this date and period"
+      security:
+        -
+          bearer: []
+      summary: "Create a worker availability"
+      tags:
+        - "Availability"
+  /availability/{id}:
+    get:
+      operationId: "AvailabilityController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponseDto"
+        404:
+          description: "Availability not found"
+      security:
+        -
+          bearer: []
+      summary: "Get one availability owned by the authenticated worker"
+      tags:
+        - "Availability"
+    patch:
+      operationId: "AvailabilityController_update"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAvailabilityDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponseDto"
+        400:
+          description: "Past date or invalid time slot"
+        404:
+          description: "Availability not found"
+        409:
+          description: "Availability already exists for this date and period"
+      security:
+        -
+          bearer: []
+      summary: "Update a worker availability and revalidate all business rules"
+      tags:
+        - "Availability"
+    delete:
+      operationId: "AvailabilityController_remove"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        204:
+          description: "Availability removed"
+        404:
+          description: "Availability not found"
+      security:
+        -
+          bearer: []
+      summary: "Remove a worker availability"
+      tags:
+        - "Availability"
+  /notifications:
+    get:
+      operationId: "NotificationsController_list"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            example: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          description: "Maximum 100"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+            type: "number"
+        -
+          name: "lu"
+          required: false
+          in: "query"
+          description: "Filter by read state"
+          schema:
+            example: false
+            type: "boolean"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListDto"
+              example:
+                data: []
+                page: 1
+                limit: 20
+                total: 0
+                totalPages: 0
+      security:
+        -
+          bearer: []
+      summary: "List only the authenticated user notifications"
+      tags:
+        - "Notifications"
+  /notifications/unread-count:
+    get:
+      operationId: "NotificationsController_unreadCount"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCountDto"
+              example:
+                count: 8
+      security:
+        -
+          bearer: []
+      summary: "Count unread notifications for the authenticated user"
+      tags:
+        - "Notifications"
+  /notifications/read-all:
+    patch:
+      operationId: "NotificationsController_markAllRead"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              example:
+                count: 8
+      security:
+        -
+          bearer: []
+      summary: "Mark all authenticated user notifications as read"
+      tags:
+        - "Notifications"
+  /notifications/mission-broadcast:
+    post:
+      operationId: "NotificationsController_broadcastMission"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MissionBroadcastDto"
+      responses:
+        201:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionBroadcastResponseDto"
+        400:
+          description: "Invalid, incompatible, or more than 15 worker recipients"
+        403:
+          description: "COMMISSION_PAYMENT_REQUIRED: A selected worker has outstanding commissions above the configured limit.\n\nMission does not belong to this recruiter"
+        404:
+          description: "Mission not found"
+        409:
+          description: "Mission is not active for broadcast"
+      security:
+        -
+          bearer: []
+      summary: "Send a mission proposal to up to 15 selected compatible workers and their agents"
+      tags:
+        - "Notifications"
+  /notifications/{id}:
+    get:
+      operationId: "NotificationsController_getById"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationDetailsDto"
+        404:
+          description: "Notification not found"
+      security:
+        -
+          bearer: []
+      summary: "Get one notification owned by the authenticated user, including events"
+      tags:
+        - "Notifications"
+  /notifications/{id}/read:
+    patch:
+      operationId: "NotificationsController_markRead"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationDetailsDto"
+        404:
+          description: "Notification not found"
+      security:
+        -
+          bearer: []
+      summary: "Mark an owned notification as read and record a LU event"
+      tags:
+        - "Notifications"
+  /whatsapp/send:
+    post:
+      operationId: "WhatsappController_send"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendWhatsAppMessageDto"
+      responses:
+        201:
+          description: "WhatsApp messages sent or skipped per recipient"
+        403:
+          description: "PREMIUM_REQUIRED: Cette fonctionnalité nécessite un compte Premium."
+      security:
+        -
+          bearer: []
+      summary: "Send a premium WhatsApp mission message to explicit worker recipients"
+      tags:
+        - "WhatsApp"
+  /whatsapp/webhook:
+    get:
+      operationId: "WhatsappController_verifyWebhook"
+      parameters:
+        -
+          name: "hub.mode"
+          required: true
+          in: "query"
+          schema:
+            type: "string"
+        -
+          name: "hub.verify_token"
+          required: true
+          in: "query"
+          schema:
+            type: "string"
+        -
+          name: "hub.challenge"
+          required: true
+          in: "query"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+      summary: "Verify the WhatsApp Cloud API webhook"
+      tags:
+        - "WhatsApp"
+    post:
+      operationId: "WhatsappController_webhook"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookPayloadDto"
+            examples:
+              delivered:
+                value:
+                  object: "whatsapp_business_account"
+                  entry:
+                    -
+                      changes:
+                        -
+                          value:
+                            statuses:
+                              -
+                                id: "wamid.example"
+                                status: "delivered"
+              buttonReply:
+                value:
+                  object: "whatsapp_business_account"
+                  entry:
+                    -
+                      changes:
+                        -
+                          value:
+                            messages:
+                              -
+                                from: "2250701020304"
+                                interactive:
+                                  button_reply:
+                                    id: "xeuysil:proposal:MISSION_UUID:accept"
+                                    title: "ACCEPTER"
+      responses:
+        200:
+          description: "Webhook payload processed"
+        400:
+          description: "Invalid Meta webhook payload"
+        401:
+          description: "Invalid X-Hub-Signature-256 header"
+      summary: "Receive Meta delivery statuses and worker button replies"
+      tags:
+        - "WhatsApp"
+  /whatsapp/history:
+    get:
+      operationId: "WhatsappController_history"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "Get WhatsApp delivery and interaction history for the authenticated user"
+      tags:
+        - "WhatsApp"
+  /me/commissions:
+    get:
+      operationId: "CommissionsController_getMyCommissions"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerCommissionSummaryDto"
+      security:
+        -
+          bearer: []
+      summary: "List the authenticated worker commissions with paid and remaining balances"
+      tags:
+        - "Commissions"
+  /settings/public:
+    get:
+      operationId: "SettingsController_getPublicSettings"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              example:
+                commissionPercent: 10
+                maxCommissionDebt: 5000
+      summary: "Get public platform settings such as the commission percentage"
+      tags:
+        - "Settings"
+  /profile/photo:
+    post:
+      operationId: "ProfileController_uploadPhoto"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                file:
+                  type: "string"
+                  format: "binary"
+              required:
+                - "file"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePhotoResponseDto"
+        413:
+          description: "Profile pictures must be 2 MB or smaller"
+        415:
+          description: "Only JPEG, PNG, and WebP images are supported"
+      security:
+        -
+          bearer: []
+      summary: "Upload the authenticated profile picture to the pictureProfile bucket"
+      tags:
+        - "Profile"
+    delete:
+      operationId: "ProfileController_removePhoto"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePhotoResponseDto"
+      security:
+        -
+          bearer: []
+      summary: "Remove the authenticated profile picture"
+      tags:
+        - "Profile"
+  /admin/users:
+    get:
+      operationId: "AdminController_listUsers"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            example: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 20
+            type: "number"
+        -
+          name: "role"
+          required: false
+          in: "query"
+          schema:
+            enum:
+              - "TRAVAILLEUR"
+              - "RECRUTEUR"
+              - "AGENT"
+              - "ADMINISTRATEUR"
+            type: "string"
+        -
+          name: "statut"
+          required: false
+          in: "query"
+          schema:
+            enum:
+              - "ACTIF"
+              - "SUSPENDU"
+              - "SUPPRIME"
+            type: "string"
+        -
+          name: "premium"
+          required: false
+          in: "query"
+          schema:
+            example: true
+            type: "boolean"
+        -
+          name: "nom"
+          required: false
+          in: "query"
+          schema:
+            example: "Awa"
+            type: "string"
+        -
+          name: "telephone"
+          required: false
+          in: "query"
+          schema:
+            example: "+2250701"
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserListDto"
+      security:
+        -
+          bearer: []
+      summary: "List and filter platform users"
+      tags:
+        - "Admin"
+  /admin/users/{id}:
+    get:
+      operationId: "AdminController_getUser"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDto"
+        404:
+          description: "User not found"
+      security:
+        -
+          bearer: []
+      summary: "Get a user account"
+      tags:
+        - "Admin"
+  /admin/users/{id}/status:
+    patch:
+      operationId: "AdminController_updateUserStatus"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDto"
+        404:
+          description: "User not found"
+      security:
+        -
+          bearer: []
+      summary: "Change a user account status and notify the user"
+      tags:
+        - "Admin"
+  /admin/users/{id}/premium:
+    patch:
+      operationId: "AdminController_updatePremium"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePremiumDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDto"
+              example:
+                id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+                nom: "Kouassi Jean"
+                role: "TRAVAILLEUR"
+                statut: "ACTIF"
+                isPremium: true
+        404:
+          description: "User not found"
+      security:
+        -
+          bearer: []
+      summary: "Manually activate or deactivate Premium for a user"
+      tags:
+        - "Admin"
+  /admin/missions:
+    get:
+      operationId: "AdminController_listMissions"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            type: "number"
+        -
+          name: "statut"
+          required: false
+          in: "query"
+          schema:
+            enum:
+              - "BROUILLON"
+              - "PUBLIEE"
+              - "PARTIELLEMENT_POURVUE"
+              - "POURVUE"
+              - "EN_COURS"
+              - "TERMINEE"
+              - "ANNULEE"
+              - "EXPIREE"
+              - "SUSPENDUE"
+              - "CLOTUREE"
+            type: "string"
+        -
+          name: "date"
+          required: false
+          in: "query"
+          schema:
+            format: "date"
+            type: "string"
+        -
+          name: "zoneId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMissionListDto"
+      security:
+        -
+          bearer: []
+      summary: "List missions with status, date, and zone filters"
+      tags:
+        - "Admin"
+  /admin/missions/stats:
+    get:
+      operationId: "AdminController_getMissionStats"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMissionStatsDto"
+      security:
+        -
+          bearer: []
+      summary: "Get mission totals and grouped status statistics"
+      tags:
+        - "Admin"
+  /admin/missions/{id}:
+    get:
+      operationId: "AdminController_getMission"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMissionDto"
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Get a mission detail for administration"
+      tags:
+        - "Admin"
+  /admin/missions/{id}/status:
+    patch:
+      operationId: "AdminController_updateMissionStatus"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMissionStatusDto"
+      responses:
+        404:
+          description: "Mission not found"
+      security:
+        -
+          bearer: []
+      summary: "Change a mission status and record its status history"
+      tags:
+        - "Admin"
+  /admin/commissions:
+    get:
+      operationId: "AdminController_listCommissions"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            default: 1
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 20
+            type: "number"
+        -
+          name: "workerId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+        -
+          name: "missionId"
+          required: false
+          in: "query"
+          schema:
+            format: "uuid"
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCommissionListDto"
+      security:
+        -
+          bearer: []
+      summary: "List generated commissions and outstanding amounts"
+      tags:
+        - "Admin"
+  /admin/commissions/stats:
+    get:
+      operationId: "AdminController_getCommissionStats"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminCommissionStatsDto"
+      security:
+        -
+          bearer: []
+      summary: "Get generated, paid, and outstanding commission totals"
+      tags:
+        - "Admin"
+  /admin/commissions/{id}/payments:
+    get:
+      operationId: "AdminController_listCommissionPayments"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionPaymentListDto"
+        404:
+          description: "Commission not found"
+      security:
+        -
+          bearer: []
+      summary: "List recorded payments and remaining balance for a commission"
+      tags:
+        - "Admin"
+    post:
+      operationId: "AdminController_recordCommissionPayment"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecordCommissionPaymentDto"
+      responses:
+        201:
+          description: "Payment recorded"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionPaymentResultDto"
+        404:
+          description: "Commission not found"
+      security:
+        -
+          bearer: []
+      summary: "Record a commission payment and update the worker balance"
+      tags:
+        - "Admin"
+  /admin/commissions/{id}/reminder:
+    post:
+      operationId: "AdminController_sendCommissionReminder"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        201:
+          description: "Reminder queued"
+        404:
+          description: "Commission not found"
+      security:
+        -
+          bearer: []
+      summary: "Send a commission reminder notification to the worker"
+      tags:
+        - "Admin"
+  /admin/restricted-workers:
+    get:
+      operationId: "AdminController_getRestrictedWorkers"
+      parameters:
+        -
+          name: "page"
+          required: false
+          in: "query"
+          schema:
+            type: "number"
+        -
+          name: "limit"
+          required: false
+          in: "query"
+          schema:
+            type: "number"
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "List workers whose outstanding commission exceeds MAX_COMMISSION_DEBT"
+      tags:
+        - "Admin"
+  /admin/jobs:
+    get:
+      operationId: "AdminController_listJobs"
+      parameters: []
+      responses:
+        200:
+          description: ""
+      security:
+        -
+          bearer: []
+      summary: "List job references"
+      tags:
+        - "Admin"
+    post:
+      operationId: "AdminController_createJob"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMetierDto"
+      responses:
+        201:
+          description: "Job reference created"
+      security:
+        -
+          bearer: []
+      summary: "Create a centrally managed job reference"
+      tags:
+        - "Admin"
+  /admin/jobs/{id}:
+    patch:
+      operationId: "AdminController_updateJob"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMetierDto"
+      responses:
+        200:
+          description: "Job reference updated"
+        404:
+          description: "Job reference not found"
+      security:
+        -
+          bearer: []
+      summary: "Update a centrally managed job reference or its active flag"
+      tags:
+        - "Admin"
+    delete:
+      operationId: "AdminController_deleteJob"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        204:
+          description: "Job soft-deleted"
+      security:
+        -
+          bearer: []
+      tags:
+        - "Admin"
+  /admin/zones:
+    get:
+      operationId: "AdminController_listZones"
+      parameters: []
+      responses:
+        200:
+          description: "Geographic zone references"
+      security:
+        -
+          bearer: []
+      summary: "List geographic zones"
+      tags:
+        - "Admin"
+    post:
+      operationId: "AdminController_createZone"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateZoneDto"
+      responses:
+        201:
+          description: "Zone created"
+      security:
+        -
+          bearer: []
+      summary: "Create a geographic zone"
+      tags:
+        - "Admin"
+  /admin/zones/{id}:
+    patch:
+      operationId: "AdminController_updateZone"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateZoneDto"
+      responses:
+        200:
+          description: "Zone updated"
+        404:
+          description: "Zone or parent zone not found"
+      security:
+        -
+          bearer: []
+      summary: "Update a geographic zone"
+      tags:
+        - "Admin"
+    delete:
+      operationId: "AdminController_deleteZone"
+      parameters:
+        -
+          name: "id"
+          required: true
+          in: "path"
+          schema:
+            type: "string"
+      responses:
+        204:
+          description: "Zone soft-deleted"
+      security:
+        -
+          bearer: []
+      tags:
+        - "Admin"
+  /admin/settings:
+    get:
+      operationId: "AdminController_listSettings"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              example:
+                commissionPercent: 10
+                maxCommissionDebt: 5000
+                settings: []
+      security:
+        -
+          bearer: []
+      summary: "Get effective commission settings and platform values"
+      tags:
+        - "Admin"
+    patch:
+      operationId: "AdminController_patchSettings"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchSettingsDto"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              example:
+                commissionPercent: 10
+                maxCommissionDebt: 5000
+                settings: []
+      security:
+        -
+          bearer: []
+      summary: "Persist commission percentage and maximum debt settings"
+      tags:
+        - "Admin"
+  /admin/platform-stats:
+    get:
+      operationId: "AdminController_getPlatformStats"
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStatsDto"
+              example:
+                usersTotal: 1405
+                workersTotal: 1200
+                recruitersTotal: 160
+                agentsTotal: 45
+                premiumUsers: 150
+                missionsPublished: 72
+                missionsCompleted: 850
+                applicationsTotal: 4300
+                commissionsGenerated: 12000000
+                commissionsOutstanding: 12000000
+                notificationsSent: 23500
+                whatsappMessagesSent: 9700
+      security:
+        -
+          bearer: []
+      summary: "Get platform-wide user, mission, application, commission, and notification statistics"
+      tags:
+        - "Admin"
+info:
+  title: "XeuySil API"
+  description: "API REST de la plateforme XeuySil (NestJS + Prisma + PostgreSQL).\n\nSupabase Auth est utilisé uniquement pour l’identité : confirmation de compte et réinitialisation de mot de passe.\n\nToutes les données métier sont stockées dans PostgreSQL et les photos de profil dans le bucket Supabase `pictureProfile`.\n\nLes réponses `photoUrl` renvoient toujours une URL : l’avatar par défaut `/avatars/default.svg` est utilisé quand aucune photo n’a été fournie."
+  version: "1.0.0"
+  contact:
+    name: "XeuySil Platform Team"
+    url: ""
+    email: "platform@xeuysil.com"
+tags:
+  -
+    name: "Auth"
+    description: "Inscription, connexion, mot de passe et session utilisateur."
+  -
+    name: "Bootstrap"
+    description: "Données initiales nécessaires au démarrage du front."
+  -
+    name: "Reference - Jobs"
+    description: "Référentiel métier centralisé et contrôlé."
+  -
+    name: "Reference - Zones"
+    description: "Structure géographique hiérarchique."
+  -
+    name: "Workers"
+    description: "Profil, disponibilités et activités du travailleur."
+  -
+    name: "Recruiters"
+    description: "Profil recruteur et suivi d’activité."
+  -
+    name: "Agents"
+    description: "Profil agent et proposition de travailleurs."
+  -
+    name: "Missions"
+    description: "Création, publication, clôture et suivi des missions."
+  -
+    name: "Applications"
+    description: "Candidatures, sélection, confirmation et rejet."
+  -
+    name: "Availability"
+    description: "Disponibilités journalières et créneaux de travail."
+  -
+    name: "Commissions"
+    description: "Commissions, paiements, soldes et restrictions."
+  -
+    name: "Notifications"
+    description: "Notifications utilisateur et messagerie WhatsApp."
+  -
+    name: "Dashboard"
+    description: "Indicateurs et synthèses métier par profil."
+  -
+    name: "Admin"
+    description: "Administration système et gestion de plateforme."
+  -
+    name: "WhatsApp"
+    description: "Webhooks et envoi de messages WhatsApp."
+  -
+    name: "Settings"
+    description: "Paramètres globaux applicatifs."
+  -
+    name: "Profile"
+    description: "Photo de profil et préférences utilisateur."
+  -
+    name: "Avatars"
+    description: "Ressources statiques d’avatar par défaut."
+servers:
+  -
+    url: "http://localhost:3000"
+    description: "Local NestJS backend"
+    variables: null
+  -
+    url: "https://api.xeuysil.com"
+    description: "Production API"
+    variables: null
+components:
+  securitySchemes:
+    bearer:
+      scheme: "bearer"
+      bearerFormat: "JWT"
+      type: "http"
+  schemas:
+    RegisterWorkerDto:
+      type: "object"
+      properties:
+        nom:
+          type: "string"
+        telephone:
+          type: "string"
+        email:
+          type: "string"
+          format: "email"
+        password:
+          type: "string"
+          format: "password"
+          minLength: 8
+        confirmationPassword:
+          type: "string"
+          format: "password"
+          minLength: 8
+        agentReferralCode:
+          type: "object"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+      required:
+        - "nom"
+        - "telephone"
+        - "email"
+        - "password"
+        - "confirmationPassword"
+        - "langue"
+    RegisterRecruiterDto:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          format: "email"
+        password:
+          type: "string"
+          format: "password"
+          minLength: 8
+        nom:
+          type: "string"
+        telephone:
+          type: "string"
+        typeRecruteur:
+          type: "string"
+          enum:
+            - "PARTICULIER"
+            - "ENTREPRISE"
+        raisonSociale:
+          type: "string"
+      required:
+        - "email"
+        - "password"
+        - "nom"
+        - "telephone"
+        - "typeRecruteur"
+        - "raisonSociale"
+    LoginDto:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          format: "email"
+        password:
+          type: "string"
+          format: "password"
+          minLength: 8
+      required:
+        - "email"
+        - "password"
+    RefreshTokenDto:
+      type: "object"
+      properties:
+        refreshToken:
+          type: "string"
+      required:
+        - "refreshToken"
+    ForgotPasswordDto:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          format: "email"
+      required:
+        - "email"
+    ResetPasswordDto:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+        newPassword:
+          type: "string"
+          format: "password"
+          minLength: 8
+        confirmPassword:
+          type: "string"
+          format: "password"
+          minLength: 8
+      required:
+        - "token"
+        - "newPassword"
+        - "confirmPassword"
+    WorkerDashboardProfileDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+        photoUrl:
+          type: "string"
+          format: "uri"
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        possedeSonMateriel:
+          type: "boolean"
+          example: true
+      required:
+        - "id"
+        - "nom"
+        - "telephone"
+        - "langue"
+        - "photoUrl"
+        - "scoreFiabilite"
+        - "possedeSonMateriel"
+    WorkerDashboardStatsDto:
+      type: "object"
+      properties:
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        applicationsTotal:
+          type: "number"
+          example: 24
+        applicationsPending:
+          type: "number"
+          example: 3
+        applicationsConfirmed:
+          type: "number"
+          example: 5
+        missionsCompleted:
+          type: "number"
+          example: 12
+        grossRevenue:
+          type: "number"
+          example: 540000
+        totalCommission:
+          type: "number"
+          example: 54000
+        paidCommission:
+          type: "number"
+          example: 0
+        remainingCommission:
+          type: "number"
+          example: 54000
+        accountRestricted:
+          type: "boolean"
+          example: false
+        netRevenue:
+          type: "number"
+          example: 486000
+      required:
+        - "scoreFiabilite"
+        - "applicationsTotal"
+        - "applicationsPending"
+        - "applicationsConfirmed"
+        - "missionsCompleted"
+        - "grossRevenue"
+        - "totalCommission"
+        - "paidCommission"
+        - "remainingCommission"
+        - "accountRestricted"
+        - "netRevenue"
+    WorkerDashboardMissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Chantier de construction"
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        metier:
+          type: "string"
+          example: "Maçon"
+        zone:
+          type: "string"
+          example: "Cocody"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+      required:
+        - "id"
+        - "description"
+        - "dateMission"
+        - "metier"
+        - "zone"
+        - "statut"
+    WorkerDashboardApplicationDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        missionId:
+          type: "string"
+          format: "uuid"
+        mission:
+          type: "object"
+          example: "Chantier de construction"
+      required:
+        - "id"
+        - "statut"
+        - "createdAt"
+        - "missionId"
+        - "mission"
+    WorkerDashboardNotificationsDto:
+      type: "object"
+      properties:
+        unreadCount:
+          type: "number"
+          example: 2
+      required:
+        - "unreadCount"
+    WorkerDashboardDto:
+      type: "object"
+      properties:
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        profile:
+          $ref: "#/components/schemas/WorkerDashboardProfileDto"
+        stats:
+          $ref: "#/components/schemas/WorkerDashboardStatsDto"
+        upcomingMissions:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerDashboardMissionDto"
+        recentApplications:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerDashboardApplicationDto"
+        notifications:
+          $ref: "#/components/schemas/WorkerDashboardNotificationsDto"
+      required:
+        - "role"
+        - "profile"
+        - "stats"
+        - "upcomingMissions"
+        - "recentApplications"
+        - "notifications"
+    RecruiterDashboardStatsDto:
+      type: "object"
+      properties:
+        activeMissions:
+          type: "number"
+          example: 8
+        completedMissions:
+          type: "number"
+          example: 12
+        candidatesTotal:
+          type: "number"
+          example: 34
+        confirmedWorkers:
+          type: "number"
+          example: 20
+        missionsUrgentes:
+          type: "number"
+          example: 2
+      required:
+        - "activeMissions"
+        - "completedMissions"
+        - "candidatesTotal"
+        - "confirmedWorkers"
+        - "missionsUrgentes"
+    RecruiterDashboardMissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Chantier de construction"
+        dateMission:
+          type: "string"
+          format: "date"
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        metier:
+          type: "string"
+          example: "Maçon"
+        zone:
+          type: "string"
+          example: "Cocody"
+        candidatesCount:
+          type: "number"
+          example: 4
+      required:
+        - "id"
+        - "description"
+        - "dateMission"
+        - "statut"
+        - "metier"
+        - "zone"
+        - "candidatesCount"
+    RecruiterDashboardApplicationDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        missionId:
+          type: "string"
+          format: "uuid"
+        workerName:
+          type: "string"
+          example: "Kouassi Jean"
+        mission:
+          type: "object"
+          example: "Chantier de construction"
+      required:
+        - "id"
+        - "statut"
+        - "createdAt"
+        - "missionId"
+        - "workerName"
+        - "mission"
+    RecruiterDashboardDto:
+      type: "object"
+      properties:
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        stats:
+          $ref: "#/components/schemas/RecruiterDashboardStatsDto"
+        recentMissions:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RecruiterDashboardMissionDto"
+        recentApplications:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/RecruiterDashboardApplicationDto"
+      required:
+        - "role"
+        - "stats"
+        - "recentMissions"
+        - "recentApplications"
+    AgentDashboardStatsDto:
+      type: "object"
+      properties:
+        workersManaged:
+          type: "number"
+          example: 43
+        activeWorkers:
+          type: "number"
+          example: 39
+        applicationsGenerated:
+          type: "number"
+          example: 86
+        confirmationsReceived:
+          type: "number"
+          example: 51
+      required:
+        - "workersManaged"
+        - "activeWorkers"
+        - "applicationsGenerated"
+        - "confirmationsReceived"
+    AgentDashboardWorkerDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "nom"
+        - "scoreFiabilite"
+        - "createdAt"
+    AgentDashboardActivityDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        workerName:
+          type: "string"
+          example: "Kouassi Jean"
+        missionId:
+          type: "string"
+          format: "uuid"
+        mission:
+          type: "object"
+          example: "Chantier de construction"
+      required:
+        - "id"
+        - "statut"
+        - "createdAt"
+        - "workerName"
+        - "missionId"
+        - "mission"
+    AgentDashboardDto:
+      type: "object"
+      properties:
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        stats:
+          $ref: "#/components/schemas/AgentDashboardStatsDto"
+        workers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AgentDashboardWorkerDto"
+        recentActivity:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AgentDashboardActivityDto"
+      required:
+        - "role"
+        - "stats"
+        - "workers"
+        - "recentActivity"
+    AdminDashboardStatsDto:
+      type: "object"
+      properties:
+        workersRegistered:
+          type: "number"
+          example: 1200
+        recruitersRegistered:
+          type: "number"
+          example: 160
+        agentsRegistered:
+          type: "number"
+          example: 45
+        openMissions:
+          type: "number"
+          example: 72
+        completedMissions:
+          type: "number"
+          example: 850
+        applicationsTotal:
+          type: "number"
+          example: 4300
+        platformRevenue:
+          type: "number"
+          example: 120000000
+          description: "Gross mission volume in FCFA"
+        commissionsCollected:
+          type: "number"
+          example: 12000000
+          description: "Collected commissions in FCFA"
+        totalCommissionsGenerated:
+          type: "number"
+          example: 14000000
+        totalCommissionsPaid:
+          type: "number"
+          example: 0
+        totalCommissionsOutstanding:
+          type: "number"
+          example: 14000000
+        restrictedWorkersCount:
+          type: "number"
+          example: 18
+      required:
+        - "workersRegistered"
+        - "recruitersRegistered"
+        - "agentsRegistered"
+        - "openMissions"
+        - "completedMissions"
+        - "applicationsTotal"
+        - "platformRevenue"
+        - "commissionsCollected"
+        - "totalCommissionsGenerated"
+        - "totalCommissionsPaid"
+        - "totalCommissionsOutstanding"
+        - "restrictedWorkersCount"
+    AdminMissionStatusChartItemDto:
+      type: "object"
+      properties:
+        status:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        count:
+          type: "number"
+          example: 35
+      required:
+        - "status"
+        - "count"
+    AdminApplicationStatusChartItemDto:
+      type: "object"
+      properties:
+        status:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        count:
+          type: "number"
+          example: 110
+      required:
+        - "status"
+        - "count"
+    AdminDashboardChartsDto:
+      type: "object"
+      properties:
+        missionsByStatus:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminMissionStatusChartItemDto"
+        applicationsByStatus:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminApplicationStatusChartItemDto"
+      required:
+        - "missionsByStatus"
+        - "applicationsByStatus"
+    AdminDashboardActivityDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        type:
+          type: "string"
+          example: "MISSION_STATUS_CHANGED"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        entityId:
+          type: "string"
+          format: "uuid"
+        status:
+          type: "string"
+          example: "PUBLIEE"
+      required:
+        - "id"
+        - "type"
+        - "createdAt"
+        - "entityId"
+        - "status"
+    AdminDashboardDto:
+      type: "object"
+      properties:
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        stats:
+          $ref: "#/components/schemas/AdminDashboardStatsDto"
+        charts:
+          $ref: "#/components/schemas/AdminDashboardChartsDto"
+        recentActivity:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminDashboardActivityDto"
+      required:
+        - "role"
+        - "stats"
+        - "charts"
+        - "recentActivity"
+    BootstrapUserDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        email:
+          type: "string"
+          format: "email"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        statut:
+          type: "string"
+          enum:
+            - "ACTIF"
+            - "SUSPENDU"
+            - "SUPPRIME"
+        langue:
+          type: "string"
+          example: "fr"
+        photoUrl:
+          type: "string"
+          format: "uri"
+      required:
+        - "id"
+        - "email"
+        - "nom"
+        - "telephone"
+        - "role"
+        - "statut"
+        - "langue"
+        - "photoUrl"
+    BootstrapNotificationsDto:
+      type: "object"
+      properties:
+        unreadCount:
+          type: "number"
+          example: 2
+      required:
+        - "unreadCount"
+    BootstrapSettingsDto:
+      type: "object"
+      properties:
+        commissionPercent:
+          type: "number"
+          example: 10
+          description: "Commission percentage configured by the platform"
+      required:
+        - "commissionPercent"
+    BootstrapResponseDto:
+      type: "object"
+      properties:
+        user:
+          $ref: "#/components/schemas/BootstrapUserDto"
+        permissions:
+          example:
+            - "profile:read"
+            - "missions:read"
+          type: "array"
+          items:
+            type: "string"
+        notifications:
+          $ref: "#/components/schemas/BootstrapNotificationsDto"
+        dashboard:
+          oneOf:
+            -
+              $ref: "#/components/schemas/WorkerDashboardDto"
+            -
+              $ref: "#/components/schemas/RecruiterDashboardDto"
+            -
+              $ref: "#/components/schemas/AgentDashboardDto"
+            -
+              $ref: "#/components/schemas/AdminDashboardDto"
+        settings:
+          $ref: "#/components/schemas/BootstrapSettingsDto"
+      required:
+        - "user"
+        - "permissions"
+        - "notifications"
+        - "dashboard"
+        - "settings"
+    WorkerAgentDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Awa Traoré"
+        codeParrainage:
+          type: "object"
+          example: "AGENT-2026-001"
+          nullable: true
+      required:
+        - "id"
+        - "nom"
+        - "codeParrainage"
+    WorkerMetierDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        code:
+          type: "string"
+          example: "MACON"
+        libelle:
+          type: "string"
+          example: "Maçon"
+        categorie:
+          type: "string"
+          example: "BTP"
+        experienceAnnees:
+          type: "number"
+          example: 4
+      required:
+        - "id"
+        - "code"
+        - "libelle"
+        - "categorie"
+        - "experienceAnnees"
+    WorkerZoneDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Cocody"
+        niveau:
+          type: "string"
+          enum:
+            - "REGION"
+            - "DEPARTEMENT"
+            - "COMMUNE"
+            - "QUARTIER"
+        parentId:
+          type: "object"
+          format: "uuid"
+          nullable: true
+      required:
+        - "id"
+        - "nom"
+        - "niveau"
+        - "parentId"
+    WorkerProfileResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+        photoUrl:
+          type: "string"
+          format: "uri"
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        possedeSonMateriel:
+          type: "boolean"
+          example: true
+        agent:
+          nullable: true
+          type: "object"
+          allOf:
+            -
+              $ref: "#/components/schemas/WorkerAgentDto"
+        metiers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerMetierDto"
+        zones:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerZoneDto"
+      required:
+        - "id"
+        - "nom"
+        - "telephone"
+        - "langue"
+        - "photoUrl"
+        - "scoreFiabilite"
+        - "possedeSonMateriel"
+        - "agent"
+        - "metiers"
+        - "zones"
+    UpdateWorkerProfileDto:
+      type: "object"
+      properties:
+        langue:
+          type: "string"
+          example: "fr"
+        possedeSonMateriel:
+          type: "boolean"
+          example: true
+        metierIds:
+          example:
+            - "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+        zoneIds:
+          example:
+            - "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      required:
+        - "langue"
+        - "possedeSonMateriel"
+        - "metierIds"
+        - "zoneIds"
+    WorkerEarningsDto:
+      type: "object"
+      properties:
+        grossRevenue:
+          type: "number"
+          example: 540000
+          description: "Total gross revenue in FCFA"
+        totalCommission:
+          type: "number"
+          example: 54000
+          description: "Total commission in FCFA"
+        netRevenue:
+          type: "number"
+          example: 486000
+          description: "Total net revenue in FCFA"
+        completedMissions:
+          type: "number"
+          example: 12
+      required:
+        - "grossRevenue"
+        - "totalCommission"
+        - "netRevenue"
+        - "completedMissions"
+    WorkerStatsDto:
+      type: "object"
+      properties:
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        totalApplications:
+          type: "number"
+          example: 24
+        pendingApplications:
+          type: "number"
+          example: 3
+        acceptedApplications:
+          type: "number"
+          example: 5
+        completedMissions:
+          type: "number"
+          example: 12
+        nextMissionDate:
+          type: "object"
+          example: "2026-12-01"
+          format: "date"
+          nullable: true
+      required:
+        - "scoreFiabilite"
+        - "totalApplications"
+        - "pendingApplications"
+        - "acceptedApplications"
+        - "completedMissions"
+        - "nextMissionDate"
+    WorkerPublicProfileDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        photoUrl:
+          type: "string"
+          format: "uri"
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        metiers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerMetierDto"
+        zones:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerZoneDto"
+      required:
+        - "id"
+        - "nom"
+        - "photoUrl"
+        - "scoreFiabilite"
+        - "metiers"
+        - "zones"
+    RecruiterProfileDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+        photoUrl:
+          type: "string"
+          format: "uri"
+        typeRecruteur:
+          type: "string"
+          enum:
+            - "PARTICULIER"
+            - "ENTREPRISE"
+        raisonSociale:
+          type: "string"
+          example: "BTP Ivoire SARL"
+        missionsCount:
+          type: "number"
+          example: 12
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "nom"
+        - "langue"
+        - "photoUrl"
+        - "typeRecruteur"
+        - "raisonSociale"
+        - "missionsCount"
+        - "createdAt"
+    UpdateRecruiterDto:
+      type: "object"
+      properties:
+        raisonSociale:
+          type: "string"
+          example: "BTP Ivoire SARL"
+          maxLength: 255
+    AgentProfileDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Awa Traoré"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+        photoUrl:
+          type: "string"
+          format: "uri"
+        codeParrainage:
+          type: "object"
+          example: "AGENT-001"
+          nullable: true
+        perimetre:
+          type: "object"
+          example: "Cocody, Abidjan"
+          nullable: true
+        workersManaged:
+          type: "number"
+          example: 12
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "nom"
+        - "langue"
+        - "photoUrl"
+        - "workersManaged"
+        - "createdAt"
+    UpdateAgentDto:
+      type: "object"
+      properties:
+        perimetre:
+          type: "string"
+          example: "Cocody, Abidjan"
+          maxLength: 2000
+    AgentWorkerMetierDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        libelle:
+          type: "string"
+          example: "Maçon"
+        experienceAnnees:
+          type: "number"
+          example: 4
+      required:
+        - "id"
+        - "libelle"
+        - "experienceAnnees"
+    AgentWorkerZoneDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Cocody"
+      required:
+        - "id"
+        - "nom"
+    AgentWorkerDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        photoUrl:
+          type: "string"
+          format: "uri"
+        scoreFiabilite:
+          type: "object"
+          example: 92.5
+          nullable: true
+        possedeSonMateriel:
+          type: "boolean"
+          example: true
+        metiers:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AgentWorkerMetierDto"
+        zones:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AgentWorkerZoneDto"
+        applicationsCount:
+          type: "number"
+          example: 3
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "nom"
+        - "photoUrl"
+        - "possedeSonMateriel"
+        - "metiers"
+        - "zones"
+        - "applicationsCount"
+        - "createdAt"
+    AgentWorkerListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AgentWorkerDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 42
+        totalPages:
+          type: "number"
+          example: 3
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    CreateProposalDto:
+      type: "object"
+      properties:
+        travailleurId:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "string"
+          format: "uuid"
+      required:
+        - "travailleurId"
+        - "missionId"
+    AgentProposalResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "string"
+          format: "uuid"
+        travailleurId:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        canal:
+          type: "string"
+          enum:
+            - "APPLICATION"
+            - "WHATSAPP"
+            - "SMS"
+            - "APPEL"
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "missionId"
+        - "travailleurId"
+        - "statut"
+        - "canal"
+        - "createdAt"
+    CreateApplicationDto:
+      type: "object"
+      properties:
+        missionId:
+          type: "string"
+          format: "uuid"
+      required:
+        - "missionId"
+    ApplicationMissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Chantier de construction"
+        dateMission:
+          type: "string"
+          format: "date"
+        nombrePostes:
+          type: "number"
+          example: 3
+      required:
+        - "id"
+        - "description"
+        - "dateMission"
+        - "nombrePostes"
+    ApplicationWorkerDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+      required:
+        - "id"
+        - "nom"
+    ApplicationResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "string"
+          format: "uuid"
+        travailleurId:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        canal:
+          type: "string"
+          enum:
+            - "APPLICATION"
+            - "WHATSAPP"
+            - "SMS"
+            - "APPEL"
+        dateReponse:
+          type: "object"
+          format: "date-time"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+        mission:
+          $ref: "#/components/schemas/ApplicationMissionDto"
+        travailleur:
+          $ref: "#/components/schemas/ApplicationWorkerDto"
+      required:
+        - "id"
+        - "missionId"
+        - "travailleurId"
+        - "statut"
+        - "canal"
+        - "dateReponse"
+        - "createdAt"
+        - "mission"
+        - "travailleur"
+    ApplicationListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ApplicationResponseDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 42
+        totalPages:
+          type: "number"
+          example: 3
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    ApplicationHistoryDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        ancienStatut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+          nullable: true
+        nouveauStatut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        changedBy:
+          type: "object"
+          format: "uuid"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "ancienStatut"
+        - "nouveauStatut"
+        - "changedBy"
+        - "createdAt"
+    ApplicationConfirmationDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        dateConfirmation:
+          type: "object"
+          format: "date"
+          nullable: true
+        presence:
+          type: "string"
+          enum:
+            - "NON_SAISIE"
+            - "PRESENT"
+            - "ABSENT"
+      required:
+        - "id"
+        - "dateConfirmation"
+        - "presence"
+    ApplicationDetailsDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "string"
+          format: "uuid"
+        travailleurId:
+          type: "string"
+          format: "uuid"
+        statut:
+          type: "string"
+          enum:
+            - "PROPOSEE"
+            - "INTERESSE"
+            - "SELECTIONNEE"
+            - "CONFIRMEE"
+            - "REFUSEE"
+            - "EXPIREE"
+            - "ANNULEE"
+            - "LISTE_ATTENTE"
+            - "RETIREE"
+        canal:
+          type: "string"
+          enum:
+            - "APPLICATION"
+            - "WHATSAPP"
+            - "SMS"
+            - "APPEL"
+        dateReponse:
+          type: "object"
+          format: "date-time"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+        mission:
+          $ref: "#/components/schemas/ApplicationMissionDto"
+        travailleur:
+          $ref: "#/components/schemas/ApplicationWorkerDto"
+        historique:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ApplicationHistoryDto"
+        confirmation:
+          nullable: true
+          type: "object"
+          allOf:
+            -
+              $ref: "#/components/schemas/ApplicationConfirmationDto"
+      required:
+        - "id"
+        - "missionId"
+        - "travailleurId"
+        - "statut"
+        - "canal"
+        - "dateReponse"
+        - "createdAt"
+        - "mission"
+        - "travailleur"
+        - "historique"
+        - "confirmation"
+    MissionMetierDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        code:
+          type: "string"
+          example: "MACON"
+        libelle:
+          type: "string"
+          example: "Maçon"
+        categorie:
+          type: "string"
+          example: "BTP"
+      required:
+        - "id"
+        - "code"
+        - "libelle"
+        - "categorie"
+    MissionZoneDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Cocody"
+        niveau:
+          type: "string"
+          enum:
+            - "REGION"
+            - "DEPARTEMENT"
+            - "COMMUNE"
+            - "QUARTIER"
+      required:
+        - "id"
+        - "nom"
+        - "niveau"
+    MissionRecruiterDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Awa Traoré"
+        typeRecruteur:
+          type: "string"
+          enum:
+            - "PARTICULIER"
+            - "ENTREPRISE"
+        raisonSociale:
+          type: "string"
+          example: "Entreprise XeuySil"
+      required:
+        - "id"
+        - "nom"
+        - "typeRecruteur"
+        - "raisonSociale"
+    MissionResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        recruteurId:
+          type: "string"
+          format: "uuid"
+        metierId:
+          type: "string"
+          format: "uuid"
+        zoneId:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Aider une équipe sur un chantier."
+          nullable: true
+        nombrePostes:
+          type: "number"
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          example: 15000
+          description: "Amount in FCFA"
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        datePublication:
+          type: "object"
+          format: "date"
+          nullable: true
+        dateCloture:
+          type: "object"
+          format: "date"
+          nullable: true
+        typeHoraire:
+          type: "string"
+          enum:
+            - "TRAVAIL_JOURNALIER"
+            - "DEMI_JOURNEE"
+            - "CRENEAU_PRECIS"
+          nullable: true
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+        urgente:
+          type: "boolean"
+          example: false
+        modeAttribution:
+          type: "string"
+          enum:
+            - "PREMIER_ARRIVE"
+            - "SELECTION"
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        metier:
+          $ref: "#/components/schemas/MissionMetierDto"
+        zone:
+          $ref: "#/components/schemas/MissionZoneDto"
+        recruteur:
+          $ref: "#/components/schemas/MissionRecruiterDto"
+        nombreCandidatures:
+          type: "number"
+          example: 4
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "recruteurId"
+        - "metierId"
+        - "zoneId"
+        - "description"
+        - "nombrePostes"
+        - "remunerationFcfa"
+        - "dateMission"
+        - "datePublication"
+        - "dateCloture"
+        - "typeHoraire"
+        - "heureDebut"
+        - "heureFin"
+        - "urgente"
+        - "modeAttribution"
+        - "statut"
+        - "metier"
+        - "zone"
+        - "recruteur"
+        - "nombreCandidatures"
+        - "createdAt"
+        - "updatedAt"
+    MissionListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/MissionResponseDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 42
+        totalPages:
+          type: "number"
+          example: 3
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    RecommendedMissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        recruteurId:
+          type: "string"
+          format: "uuid"
+        metierId:
+          type: "string"
+          format: "uuid"
+        zoneId:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Aider une équipe sur un chantier."
+          nullable: true
+        nombrePostes:
+          type: "number"
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          example: 15000
+          description: "Amount in FCFA"
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        datePublication:
+          type: "object"
+          format: "date"
+          nullable: true
+        dateCloture:
+          type: "object"
+          format: "date"
+          nullable: true
+        typeHoraire:
+          type: "string"
+          enum:
+            - "TRAVAIL_JOURNALIER"
+            - "DEMI_JOURNEE"
+            - "CRENEAU_PRECIS"
+          nullable: true
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+        urgente:
+          type: "boolean"
+          example: false
+        modeAttribution:
+          type: "string"
+          enum:
+            - "PREMIER_ARRIVE"
+            - "SELECTION"
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        metier:
+          $ref: "#/components/schemas/MissionMetierDto"
+        zone:
+          $ref: "#/components/schemas/MissionZoneDto"
+        recruteur:
+          $ref: "#/components/schemas/MissionRecruiterDto"
+        nombreCandidatures:
+          type: "number"
+          example: 4
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        matchingScore:
+          type: "number"
+          minimum: 0
+          maximum: 175
+          example: 175
+      required:
+        - "id"
+        - "recruteurId"
+        - "metierId"
+        - "zoneId"
+        - "description"
+        - "nombrePostes"
+        - "remunerationFcfa"
+        - "dateMission"
+        - "datePublication"
+        - "dateCloture"
+        - "typeHoraire"
+        - "heureDebut"
+        - "heureFin"
+        - "urgente"
+        - "modeAttribution"
+        - "statut"
+        - "metier"
+        - "zone"
+        - "recruteur"
+        - "nombreCandidatures"
+        - "createdAt"
+        - "updatedAt"
+        - "matchingScore"
+    MissionDetailsDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        recruteurId:
+          type: "string"
+          format: "uuid"
+        metierId:
+          type: "string"
+          format: "uuid"
+        zoneId:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Aider une équipe sur un chantier."
+          nullable: true
+        nombrePostes:
+          type: "number"
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          example: 15000
+          description: "Amount in FCFA"
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        datePublication:
+          type: "object"
+          format: "date"
+          nullable: true
+        dateCloture:
+          type: "object"
+          format: "date"
+          nullable: true
+        typeHoraire:
+          type: "string"
+          enum:
+            - "TRAVAIL_JOURNALIER"
+            - "DEMI_JOURNEE"
+            - "CRENEAU_PRECIS"
+          nullable: true
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+        urgente:
+          type: "boolean"
+          example: false
+        modeAttribution:
+          type: "string"
+          enum:
+            - "PREMIER_ARRIVE"
+            - "SELECTION"
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        metier:
+          $ref: "#/components/schemas/MissionMetierDto"
+        zone:
+          $ref: "#/components/schemas/MissionZoneDto"
+        recruteur:
+          $ref: "#/components/schemas/MissionRecruiterDto"
+        nombreCandidatures:
+          type: "number"
+          example: 4
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        nombreConfirmations:
+          type: "number"
+          example: 2
+        placesRestantes:
+          type: "number"
+          example: 1
+      required:
+        - "id"
+        - "recruteurId"
+        - "metierId"
+        - "zoneId"
+        - "description"
+        - "nombrePostes"
+        - "remunerationFcfa"
+        - "dateMission"
+        - "datePublication"
+        - "dateCloture"
+        - "typeHoraire"
+        - "heureDebut"
+        - "heureFin"
+        - "urgente"
+        - "modeAttribution"
+        - "statut"
+        - "metier"
+        - "zone"
+        - "recruteur"
+        - "nombreCandidatures"
+        - "createdAt"
+        - "updatedAt"
+        - "nombreConfirmations"
+        - "placesRestantes"
+    CreateMissionDto:
+      type: "object"
+      properties:
+        metierId:
+          type: "string"
+          format: "uuid"
+          example: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+        zoneId:
+          type: "string"
+          format: "uuid"
+          example: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+        description:
+          type: "string"
+          example: "Aider une équipe sur un chantier de construction."
+        nombrePostes:
+          type: "number"
+          minimum: 1
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          minimum: 1
+          maximum: 9007199254740991
+          example: 15000
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        typeHoraire:
+          type: "string"
+          enum:
+            - "TRAVAIL_JOURNALIER"
+            - "DEMI_JOURNEE"
+            - "CRENEAU_PRECIS"
+          example: "TRAVAIL_JOURNALIER"
+          nullable: true
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: "08:00"
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: "17:00"
+        urgente:
+          type: "boolean"
+          default: false
+          example: false
+        modeAttribution:
+          type: "string"
+          enum:
+            - "PREMIER_ARRIVE"
+            - "SELECTION"
+          example: "PREMIER_ARRIVE"
+      required:
+        - "metierId"
+        - "zoneId"
+        - "description"
+        - "nombrePostes"
+        - "remunerationFcfa"
+        - "dateMission"
+        - "urgente"
+        - "modeAttribution"
+    UpdateMissionDto:
+      type: "object"
+      properties:
+        description:
+          type: "string"
+          example: "Aider une équipe sur un chantier de construction."
+        nombrePostes:
+          type: "number"
+          minimum: 1
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          minimum: 1
+          maximum: 9007199254740991
+          example: 15000
+        dateMission:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        typeHoraire:
+          type: "string"
+          enum:
+            - "TRAVAIL_JOURNALIER"
+            - "DEMI_JOURNEE"
+            - "CRENEAU_PRECIS"
+          example: "TRAVAIL_JOURNALIER"
+          nullable: true
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: "08:00"
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: "17:00"
+        urgente:
+          type: "boolean"
+          default: false
+          example: false
+        modeAttribution:
+          type: "string"
+          enum:
+            - "PREMIER_ARRIVE"
+            - "SELECTION"
+          example: "PREMIER_ARRIVE"
+    AvailabilityResponseDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+          example: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+        dateDisponibilite:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        periode:
+          type: "string"
+          enum:
+            - "JOURNEE"
+            - "MATIN"
+            - "APRES_MIDI"
+            - "CRENEAU"
+          example: "MATIN"
+        heureDebut:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: null
+        heureFin:
+          type: "object"
+          format: "time"
+          nullable: true
+          example: null
+        createdAt:
+          type: "string"
+          format: "date-time"
+          example: "2026-11-11T09:00:00.000Z"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+          example: "2026-11-11T09:00:00.000Z"
+      required:
+        - "id"
+        - "dateDisponibilite"
+        - "periode"
+        - "heureDebut"
+        - "heureFin"
+        - "createdAt"
+        - "updatedAt"
+    CreateAvailabilityDto:
+      type: "object"
+      properties:
+        dateDisponibilite:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        periode:
+          type: "string"
+          enum:
+            - "JOURNEE"
+            - "MATIN"
+            - "APRES_MIDI"
+            - "CRENEAU"
+          example: "MATIN"
+        heureDebut:
+          type: "object"
+          format: "time"
+          example: null
+          nullable: true
+        heureFin:
+          type: "object"
+          format: "time"
+          example: null
+          nullable: true
+      required:
+        - "dateDisponibilite"
+        - "periode"
+    UpdateAvailabilityDto:
+      type: "object"
+      properties:
+        dateDisponibilite:
+          type: "string"
+          format: "date"
+          example: "2027-01-15"
+        periode:
+          type: "string"
+          enum:
+            - "JOURNEE"
+            - "MATIN"
+            - "APRES_MIDI"
+            - "CRENEAU"
+          example: "MATIN"
+        heureDebut:
+          type: "object"
+          format: "time"
+          example: null
+          nullable: true
+        heureFin:
+          type: "object"
+          format: "time"
+          example: null
+          nullable: true
+    NotificationDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "object"
+          format: "uuid"
+          nullable: true
+        type:
+          type: "object"
+          example: "NOUVELLE_CANDIDATURE"
+        canal:
+          type: "string"
+          enum:
+            - "APPLICATION"
+            - "WHATSAPP"
+            - "SMS"
+            - "APPEL"
+        statut:
+          type: "string"
+          enum:
+            - "EN_FILE"
+            - "ENVOYE"
+            - "LIVRE"
+            - "LU"
+            - "ECHEC"
+        lu:
+          type: "boolean"
+          example: false
+        luAt:
+          type: "object"
+          format: "date-time"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "missionId"
+        - "type"
+        - "canal"
+        - "statut"
+        - "lu"
+        - "luAt"
+        - "createdAt"
+        - "updatedAt"
+    NotificationListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/NotificationDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 50
+        totalPages:
+          type: "number"
+          example: 3
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    UnreadCountDto:
+      type: "object"
+      properties:
+        count:
+          type: "number"
+          example: 8
+      required:
+        - "count"
+    MissionBroadcastDto:
+      type: "object"
+      properties:
+        missionId:
+          type: "string"
+          format: "uuid"
+          example: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+        workerIds:
+          minItems: 1
+          maxItems: 15
+          example:
+            - "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+          description: "Explicit worker recipients; at most 15 compatible workers."
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      required:
+        - "missionId"
+        - "workerIds"
+    MissionBroadcastResponseDto:
+      type: "object"
+      properties:
+        missionId:
+          type: "string"
+          format: "uuid"
+        workersNotified:
+          type: "number"
+          example: 4
+        agentsNotified:
+          type: "number"
+          example: 2
+          description: "Distinct referring agents notified"
+        notificationsCreated:
+          type: "number"
+          example: 6
+      required:
+        - "missionId"
+        - "workersNotified"
+        - "agentsNotified"
+        - "notificationsCreated"
+    NotificationEventDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        status:
+          type: "string"
+          enum:
+            - "EN_FILE"
+            - "ENVOYE"
+            - "LIVRE"
+            - "LU"
+            - "ECHEC"
+        payload:
+          type: "object"
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "status"
+        - "payload"
+        - "createdAt"
+    NotificationDetailsDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "object"
+          format: "uuid"
+          nullable: true
+        type:
+          type: "object"
+          example: "NOUVELLE_CANDIDATURE"
+        canal:
+          type: "string"
+          enum:
+            - "APPLICATION"
+            - "WHATSAPP"
+            - "SMS"
+            - "APPEL"
+        statut:
+          type: "string"
+          enum:
+            - "EN_FILE"
+            - "ENVOYE"
+            - "LIVRE"
+            - "LU"
+            - "ECHEC"
+        lu:
+          type: "boolean"
+          example: false
+        luAt:
+          type: "object"
+          format: "date-time"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        events:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/NotificationEventDto"
+      required:
+        - "id"
+        - "missionId"
+        - "type"
+        - "canal"
+        - "statut"
+        - "lu"
+        - "luAt"
+        - "createdAt"
+        - "updatedAt"
+        - "events"
+    SendWhatsAppMessageDto:
+      type: "object"
+      properties:
+        kind:
+          type: "string"
+          enum:
+            - "MISSION_PROPOSAL"
+            - "MISSION_SELECTION"
+            - "MISSION_REMINDER"
+          example: "MISSION_PROPOSAL"
+        missionId:
+          type: "string"
+          format: "uuid"
+          example: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
+        workerId:
+          type: "string"
+          format: "uuid"
+          description: "Required for a mission reminder"
+        applicationId:
+          type: "string"
+          format: "uuid"
+          description: "Required for a selection message"
+        workerIds:
+          maxItems: 15
+          example:
+            - "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
+          description: "Explicit worker recipients for mission proposals; maximum 15."
+          type: "array"
+          items:
+            type: "string"
+            format: "uuid"
+      required:
+        - "kind"
+        - "missionId"
+    WebhookPayloadDto:
+      type: "object"
+      properties:
+        object:
+          type: "string"
+          example: "whatsapp_business_account"
+        entry:
+          description: "Raw Meta webhook entries retained for history"
+          type: "array"
+          items:
+            type: "object"
+        extra:
+          type: "object"
+      required:
+        - "object"
+        - "entry"
+    WorkerCommissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        missionId:
+          type: "string"
+          format: "uuid"
+        metier:
+          type: "object"
+          example: "Maçon"
+          nullable: true
+        zone:
+          type: "object"
+          example: "Cocody"
+          nullable: true
+        missionDate:
+          type: "string"
+          format: "date"
+          example: "2026-11-01"
+        grossAmount:
+          type: "number"
+          example: 10000
+        commissionAmount:
+          type: "number"
+          example: 1000
+        netAmount:
+          type: "number"
+          example: 9000
+        paidAmount:
+          type: "number"
+          example: 500
+        remainingCommission:
+          type: "number"
+          example: 500
+        status:
+          type: "string"
+          enum:
+            - "DUE"
+            - "PARTIALLY_PAID"
+            - "PAID"
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "missionId"
+        - "missionDate"
+        - "grossAmount"
+        - "commissionAmount"
+        - "netAmount"
+        - "paidAmount"
+        - "remainingCommission"
+        - "status"
+        - "createdAt"
+    WorkerCommissionSummaryDto:
+      type: "object"
+      properties:
+        commissions:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/WorkerCommissionDto"
+        grossRevenue:
+          type: "number"
+          example: 10000
+        totalCommission:
+          type: "number"
+          example: 1000
+        paidCommission:
+          type: "number"
+          example: 500
+        remainingCommission:
+          type: "number"
+          example: 500
+        accountRestricted:
+          type: "boolean"
+          example: false
+        status:
+          type: "string"
+          enum:
+            - "DUE"
+            - "PARTIALLY_PAID"
+            - "PAID"
+      required:
+        - "commissions"
+        - "grossRevenue"
+        - "totalCommission"
+        - "paidCommission"
+        - "remainingCommission"
+        - "accountRestricted"
+        - "status"
+    ProfilePhotoResponseDto:
+      type: "object"
+      properties:
+        photoUrl:
+          type: "string"
+          format: "uri"
+      required:
+        - "photoUrl"
+    AdminUserDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        nom:
+          type: "string"
+          example: "Kouassi Jean"
+        telephone:
+          type: "object"
+          example: "+2250701020304"
+          nullable: true
+        role:
+          type: "string"
+          enum:
+            - "TRAVAILLEUR"
+            - "RECRUTEUR"
+            - "AGENT"
+            - "ADMINISTRATEUR"
+        statut:
+          type: "string"
+          enum:
+            - "ACTIF"
+            - "SUSPENDU"
+            - "SUPPRIME"
+        isPremium:
+          type: "boolean"
+          example: false
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "nom"
+        - "telephone"
+        - "role"
+        - "statut"
+        - "isPremium"
+        - "createdAt"
+    AdminUserListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminUserDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 100
+        totalPages:
+          type: "number"
+          example: 5
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    UpdateUserStatusDto:
+      type: "object"
+      properties:
+        statut:
+          type: "string"
+          enum:
+            - "ACTIF"
+            - "SUSPENDU"
+            - "SUPPRIME"
+      required:
+        - "statut"
+    UpdatePremiumDto:
+      type: "object"
+      properties:
+        isPremium:
+          type: "boolean"
+          example: true
+      required:
+        - "isPremium"
+    AdminMissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        recruteurId:
+          type: "string"
+          format: "uuid"
+        description:
+          type: "object"
+          example: "Chantier de construction"
+          nullable: true
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        dateMission:
+          type: "string"
+          format: "date"
+        metier:
+          type: "string"
+          example: "Maçon"
+        zone:
+          type: "string"
+          example: "Cocody"
+        recruteur:
+          type: "string"
+          example: "Entreprise XeuySil"
+        nombrePostes:
+          type: "number"
+          example: 3
+        remunerationFcfa:
+          type: "number"
+          example: 15000
+        candidaturesCount:
+          type: "number"
+          example: 4
+      required:
+        - "id"
+        - "recruteurId"
+        - "description"
+        - "statut"
+        - "dateMission"
+        - "metier"
+        - "zone"
+        - "recruteur"
+        - "nombrePostes"
+        - "remunerationFcfa"
+        - "candidaturesCount"
+    AdminMissionListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminMissionDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 100
+        totalPages:
+          type: "number"
+          example: 5
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    AdminMissionStatusCountDto:
+      type: "object"
+      properties:
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+        count:
+          type: "number"
+          example: 18
+      required:
+        - "statut"
+        - "count"
+    AdminMissionStatsDto:
+      type: "object"
+      properties:
+        total:
+          type: "number"
+          example: 100
+        published:
+          type: "number"
+          example: 72
+        completed:
+          type: "number"
+          example: 850
+        byStatus:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminMissionStatusCountDto"
+      required:
+        - "total"
+        - "published"
+        - "completed"
+        - "byStatus"
+    UpdateMissionStatusDto:
+      type: "object"
+      properties:
+        statut:
+          type: "string"
+          enum:
+            - "BROUILLON"
+            - "PUBLIEE"
+            - "PARTIELLEMENT_POURVUE"
+            - "POURVUE"
+            - "EN_COURS"
+            - "TERMINEE"
+            - "ANNULEE"
+            - "EXPIREE"
+            - "SUSPENDUE"
+            - "CLOTUREE"
+      required:
+        - "statut"
+    AdminCommissionDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        workerId:
+          type: "string"
+          format: "uuid"
+        workerName:
+          type: "string"
+          example: "Kouassi Jean"
+        missionId:
+          type: "string"
+          format: "uuid"
+        grossAmount:
+          type: "number"
+          example: 10000
+        commissionAmount:
+          type: "number"
+          example: 1000
+        netAmount:
+          type: "number"
+          example: 9000
+        paidAmount:
+          type: "number"
+          example: 0
+        remainingCommission:
+          type: "number"
+          example: 1000
+        status:
+          type: "string"
+          enum:
+            - "DUE"
+            - "PARTIALLY_PAID"
+            - "PAID"
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "workerId"
+        - "workerName"
+        - "missionId"
+        - "grossAmount"
+        - "commissionAmount"
+        - "netAmount"
+        - "paidAmount"
+        - "remainingCommission"
+        - "status"
+        - "createdAt"
+    AdminCommissionListDto:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/AdminCommissionDto"
+        page:
+          type: "number"
+          example: 1
+        limit:
+          type: "number"
+          example: 20
+        total:
+          type: "number"
+          example: 100
+        totalPages:
+          type: "number"
+          example: 5
+      required:
+        - "data"
+        - "page"
+        - "limit"
+        - "total"
+        - "totalPages"
+    AdminCommissionStatsDto:
+      type: "object"
+      properties:
+        generated:
+          type: "number"
+          example: 12000000
+        paid:
+          type: "number"
+          example: 0
+        outstanding:
+          type: "number"
+          example: 12000000
+        entries:
+          type: "number"
+          example: 5400
+      required:
+        - "generated"
+        - "paid"
+        - "outstanding"
+        - "entries"
+    CommissionPaymentDto:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        commissionId:
+          type: "string"
+          format: "uuid"
+        montant:
+          type: "number"
+          example: 500
+        methode:
+          type: "object"
+          example: "WAVE"
+          nullable: true
+        reference:
+          type: "object"
+          example: "TX-2026-000123"
+          nullable: true
+        enregistrePar:
+          type: "object"
+          format: "uuid"
+          nullable: true
+        createdAt:
+          type: "string"
+          format: "date-time"
+      required:
+        - "id"
+        - "commissionId"
+        - "montant"
+        - "createdAt"
+    CommissionPaymentListDto:
+      type: "object"
+      properties:
+        commissionId:
+          type: "string"
+          format: "uuid"
+        total:
+          type: "number"
+          example: 1
+        paidAmount:
+          type: "number"
+          example: 500
+        remainingCommission:
+          type: "number"
+          example: 500
+        status:
+          type: "string"
+          enum:
+            - "DUE"
+            - "PARTIALLY_PAID"
+            - "PAID"
+        payments:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/CommissionPaymentDto"
+      required:
+        - "commissionId"
+        - "total"
+        - "paidAmount"
+        - "remainingCommission"
+        - "status"
+        - "payments"
+    RecordCommissionPaymentDto:
+      type: "object"
+      properties:
+        montant:
+          type: "number"
+          minimum: 1
+          example: 500
+        methode:
+          type: "string"
+          example: "WAVE"
+          maxLength: 50
+        reference:
+          type: "string"
+          example: "TX-2026-000123"
+          maxLength: 255
+      required:
+        - "montant"
+    CommissionPaymentResultDto:
+      type: "object"
+      properties:
+        payment:
+          $ref: "#/components/schemas/CommissionPaymentDto"
+        paidAmount:
+          type: "number"
+          example: 500
+        remainingCommission:
+          type: "number"
+          example: 500
+        status:
+          type: "string"
+          enum:
+            - "DUE"
+            - "PARTIALLY_PAID"
+            - "PAID"
+      required:
+        - "payment"
+        - "paidAmount"
+        - "remainingCommission"
+        - "status"
+    CreateMetierDto:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        libelle:
+          type: "string"
+        categorie:
+          type: "string"
+        actif:
+          type: "boolean"
+          default: true
+      required:
+        - "code"
+        - "libelle"
+        - "categorie"
+    UpdateMetierDto:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+        libelle:
+          type: "string"
+        categorie:
+          type: "string"
+        actif:
+          type: "boolean"
+          default: true
+    CreateZoneDto:
+      type: "object"
+      properties:
+        nom:
+          type: "string"
+          example: "Cocody"
+        niveau:
+          type: "string"
+          enum:
+            - "REGION"
+            - "DEPARTEMENT"
+            - "COMMUNE"
+            - "QUARTIER"
+        parentId:
+          type: "object"
+          format: "uuid"
+          nullable: true
+      required:
+        - "nom"
+        - "niveau"
+    UpdateZoneDto:
+      type: "object"
+      properties:
+        nom:
+          type: "string"
+          example: "Cocody"
+        niveau:
+          type: "string"
+          enum:
+            - "REGION"
+            - "DEPARTEMENT"
+            - "COMMUNE"
+            - "QUARTIER"
+        parentId:
+          type: "object"
+          format: "uuid"
+          nullable: true
+    PatchSettingsDto:
+      type: "object"
+      properties:
+        commissionPercent:
+          type: "number"
+          minimum: 0
+          maximum: 100
+          example: 10
+        maxCommissionDebt:
+          type: "number"
+          minimum: 0
+          example: 5000
+    PlatformStatsDto:
+      type: "object"
+      properties:
+        usersTotal:
+          type: "number"
+          example: 1405
+        workersTotal:
+          type: "number"
+          example: 1200
+        recruitersTotal:
+          type: "number"
+          example: 160
+        agentsTotal:
+          type: "number"
+          example: 45
+        premiumUsers:
+          type: "number"
+          example: 150
+        missionsPublished:
+          type: "number"
+          example: 72
+        missionsCompleted:
+          type: "number"
+          example: 850
+        applicationsTotal:
+          type: "number"
+          example: 4300
+        commissionsGenerated:
+          type: "number"
+          example: 12000000
+        commissionsOutstanding:
+          type: "number"
+          example: 12000000
+        notificationsSent:
+          type: "number"
+          example: 23500
+        whatsappMessagesSent:
+          type: "number"
+          example: 9700
+      required:
+        - "usersTotal"
+        - "workersTotal"
+        - "recruitersTotal"
+        - "agentsTotal"
+        - "premiumUsers"
+        - "missionsPublished"
+        - "missionsCompleted"
+        - "applicationsTotal"
+        - "commissionsGenerated"
+        - "commissionsOutstanding"
+        - "notificationsSent"
+        - "whatsappMessagesSent"
