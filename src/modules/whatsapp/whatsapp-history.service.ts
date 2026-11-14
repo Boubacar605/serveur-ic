@@ -148,9 +148,13 @@ export class WhatsappHistoryService {
   }
 
   async listForUser(userId: string) {
+    // Messages reçus (destinataire) ou envoyés (senderId consigné dans l'événement).
     return this.prisma.notifications.findMany({
       where: {
-        utilisateurId: userId,
+        OR: [
+          { utilisateurId: userId },
+          { events: { some: { payload: { path: ['senderId'], equals: userId } } } },
+        ],
         events: { some: { payload: { path: ['channel'], equals: 'WHATSAPP' } } },
       },
       select: {

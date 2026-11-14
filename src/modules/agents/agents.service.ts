@@ -153,7 +153,7 @@ export class AgentsService {
           }),
           transaction.missions.findFirst({
             where: { id: dto.missionId, deletedAt: null },
-            select: { id: true, statut: true, dateMission: true, dateCloture: true },
+            select: { id: true, statut: true, dateMission: true, dateCloture: true, nombrePostes: true },
           }),
         ]);
         if (!worker) throw new ForbiddenException('Worker is not managed by this agent');
@@ -167,31 +167,48 @@ export class AgentsService {
           throw new ConflictException('Mission is closed and does not accept applications');
         }
 
-        const existing = await transaction.candidatures.findUnique({
-          where: {
-            missionId_travailleurId: {
+        const [existing, confirmed] = await Promise.all([
+          transaction.candidatures.findUnique({
+            where: {
+              missionId_travailleurId: {
+                missionId: mission.id,
+                travailleurId: dto.travailleurId,
+              },
+            },
+            select: { id: true, statut: true },
+          }),
+          transaction.candidatures.count({
+            where: { missionId: mission.id, statut: StatutCandidatureEnum.CONFIRMEE },
+          }),
+        ]);
+        // Après un retrait volontaire, la candidature peut être proposée de nouveau.
+        if (existing && existing.statut !== StatutCandidatureEnum.RETIREE) {
+          throw new ConflictException('This worker is already proposed for the mission');
+        }
+        if (confirmed >= mission.nombrePostes) {
+          throw new ConflictException('Mission is full and no longer accepts proposals');
+        }
+
+        const created = existing
+          ? await transaction.candidatures.update({
+            where: { id: existing.id },
+            data: { statut: StatutCandidatureEnum.PROPOSEE, canal: CanalEnum.APPLICATION, dateReponse: new Date() },
+            select: { id: true, missionId: true, travailleurId: true, statut: true, canal: true, createdAt: true },
+          })
+          : await transaction.candidatures.create({
+            data: {
+              id: randomUUID(),
               missionId: mission.id,
               travailleurId: dto.travailleurId,
+              statut: StatutCandidatureEnum.PROPOSEE,
+              canal: CanalEnum.APPLICATION,
             },
-          },
-          select: { id: true },
-        });
-        if (existing) throw new ConflictException('This worker is already proposed for the mission');
-
-        const created = await transaction.candidatures.create({
-          data: {
-            id: randomUUID(),
-            missionId: mission.id,
-            travailleurId: dto.travailleurId,
-            statut: StatutCandidatureEnum.PROPOSEE,
-            canal: CanalEnum.APPLICATION,
-          },
-          select: { id: true, missionId: true, travailleurId: true, statut: true, canal: true, createdAt: true },
-        });
+            select: { id: true, missionId: true, travailleurId: true, statut: true, canal: true, createdAt: true },
+          });
         await this.historyService.recordApplicationStatus(
           transaction,
           created.id,
-          null,
+          existing ? existing.statut : null,
           StatutCandidatureEnum.PROPOSEE,
           user.id,
         );

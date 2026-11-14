@@ -62,8 +62,12 @@ export class AdminController {
   @ApiOperation({ summary: 'Change a user account status and notify the user' })
   @ApiOkResponse({ type: AdminUserDto })
   @ApiNotFoundResponse({ description: 'User not found' })
-  updateUserStatus(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string, @Body() dto: UpdateUserStatusDto) {
-    return this.adminService.updateUserStatus(id, dto);
+  updateUserStatus(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateUserStatusDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.adminService.updateUserStatus(id, dto, user.id);
   }
 
   @Patch('users/:id/premium')

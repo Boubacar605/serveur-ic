@@ -75,6 +75,8 @@ export class MissionResponseDto {
   recruteur!: MissionRecruiterDto;
   @ApiProperty({ example: 4 })
   nombreCandidatures!: number;
+  @ApiProperty({ example: 2, description: 'Postes encore disponibles (nombrePostes - confirmations)' })
+  placesRestantes!: number;
   @ApiProperty({ format: 'date-time' })
   createdAt!: string;
   @ApiProperty({ format: 'date-time' })

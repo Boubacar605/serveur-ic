@@ -69,6 +69,21 @@ export class WorkerRestrictionService {
     }
   }
 
+  /** Sépare les travailleurs autorisés de ceux bloqués par une dette trop élevée. */
+  async splitByRestriction(workerIds: string[]): Promise<{ allowed: string[]; restricted: string[] }> {
+    if (!workerIds.length) return { allowed: [], restricted: [] };
+    const [balances, maximumDebt] = await Promise.all([
+      this.getOutstandingBalances(workerIds),
+      this.policy.getMaxCommissionDebt(),
+    ]);
+    const allowed: string[] = [];
+    const restricted: string[] = [];
+    for (const workerId of workerIds) {
+      ((balances.get(workerId) ?? 0n) > maximumDebt ? restricted : allowed).push(workerId);
+    }
+    return { allowed, restricted };
+  }
+
   async getRestrictedWorkersCount(): Promise<number> {
     const [balances, maximumDebt] = await Promise.all([
       this.getOutstandingBalances(),

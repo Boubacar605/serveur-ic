@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class ApplicationQueryDto {
   @ApiPropertyOptional({ minimum: 1, default: 1, example: 1 })
@@ -17,4 +17,9 @@ export class ApplicationQueryDto {
   @Min(1)
   @Max(100)
   limit?: number;
+
+  @ApiPropertyOptional({ format: 'uuid', description: 'Filtre les candidatures d’une mission précise.' })
+  @IsOptional()
+  @IsUUID('4')
+  missionId?: string;
 }

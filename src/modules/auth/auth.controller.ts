@@ -10,6 +10,7 @@ import { RegisterAgentDto } from './dto/register-agent.dto';
 import { RegisterRecruiterDto } from './dto/register-recruiter.dto';
 import { RegisterWorkerDto } from './dto/register-worker.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import type { CurrentUserPayload } from './interfaces/current-user-payload.interface';
 
 @ApiTags('Auth')
@@ -79,6 +80,14 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid email' })
   resendConfirmation(@Body() dto: ForgotPasswordDto) {
     return this.authService.resendConfirmation(dto);
+  }
+
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Confirm an e-mail address with the token from the Supabase link' })
+  @ApiResponse({ status: 200, description: 'Email confirmed' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired confirmation link' })
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto);
   }
 
   @Post('forgot-password')

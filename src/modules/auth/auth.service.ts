@@ -17,6 +17,7 @@ import { RegisterAgentDto } from './dto/register-agent.dto';
 import { RegisterRecruiterDto } from './dto/register-recruiter.dto';
 import { RegisterWorkerDto } from './dto/register-worker.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 import { SupabaseService } from './services/supabase.service';
 import { AvatarService } from '../avatar/avatar.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -35,7 +36,7 @@ export class AuthService {
       throw new BadRequestException('confirmationPassword must match password');
     }
 
-    const { user, hasSession } = await this.supabase.createUser(dto.email, dto.password);
+    const { user } = await this.supabase.createUser(dto.email, dto.password);
     try {
       await this.prisma.$transaction(async (transaction) => {
         const agent = dto.agentReferralCode
@@ -78,11 +79,12 @@ export class AuthService {
     return {
       message: 'Worker account created successfully',
       userId: user.id,
-      emailConfirmationRequired: !hasSession,
+      emailConfirmationRequired: true,
     };
   }
 
-  async registerRecruiter(dto: RegisterRecruiterDto): Promise<{ message: string; userId: string; emailConfirmationRequired: boolean }> {    const { user, hasSession } = await this.supabase.createUser(dto.email, dto.password);
+  async registerRecruiter(dto: RegisterRecruiterDto): Promise<{ message: string; userId: string; emailConfirmationRequired: boolean }> {
+    const { user } = await this.supabase.createUser(dto.email, dto.password);
     try {
       await this.prisma.$transaction(async (transaction) => {
         await transaction.profiles.create({
@@ -114,7 +116,7 @@ export class AuthService {
     return {
       message: 'Recruiter account created successfully',
       userId: user.id,
-      emailConfirmationRequired: !hasSession,
+      emailConfirmationRequired: true,
     };
   }
 
@@ -123,7 +125,7 @@ export class AuthService {
       throw new BadRequestException('confirmationPassword must match password');
     }
 
-    const { user, hasSession } = await this.supabase.createUser(dto.email, dto.password);
+    const { user } = await this.supabase.createUser(dto.email, dto.password);
     try {
       const codeParrainage = await this.generateAgentCode();
       await this.prisma.$transaction(async (transaction) => {
@@ -156,7 +158,7 @@ export class AuthService {
     return {
       message: 'Agent account created successfully',
       userId: user.id,
-      emailConfirmationRequired: !hasSession,
+      emailConfirmationRequired: true,
     };
   }
 
@@ -207,6 +209,11 @@ export class AuthService {
     }
     await this.supabase.resetPassword(dto.token, dto.newPassword);
     return { message: 'Password updated successfully' };
+  }
+
+  async verifyEmail(dto: VerifyEmailDto): Promise<{ message: string }> {
+    await this.supabase.verifyEmail(dto.token);
+    return { message: 'Email confirmed successfully' };
   }
 
   async me(user: CurrentUserPayload) {

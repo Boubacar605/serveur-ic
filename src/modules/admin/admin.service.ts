@@ -216,7 +216,14 @@ export class AdminService {
     return this.toUserDto(rows[0]);
   }
 
-  async updateUserStatus(id: string, dto: UpdateUserStatusDto): Promise<AdminUserDto> {
+  async updateUserStatus(id: string, dto: UpdateUserStatusDto, currentUserId?: string): Promise<AdminUserDto> {
+    if (currentUserId && currentUserId === id && dto.statut !== StatutCompteEnum.ACTIF) {
+      throw new BadRequestException({
+        statusCode: 400,
+        message: 'Vous ne pouvez pas désactiver votre propre compte administrateur.',
+        errorCode: 'CANNOT_SUSPEND_SELF',
+      });
+    }
     await this.prisma.$transaction(async (transaction) => {
       const profile = await transaction.profiles.findUnique({ where: { id }, select: { id: true, statut: true } });
       if (!profile) throw new NotFoundException('User not found');

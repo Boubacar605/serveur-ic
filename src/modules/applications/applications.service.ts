@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   CanalEnum,
+  ModeAttributionEnum,
   Prisma,
   PresenceEnum,
   RoleEnum,
@@ -36,7 +37,7 @@ const applicationInclude = {
       statut: true,
     },
   },
-  travailleur: { select: { agentId: true, user: { select: { id: true, nom: true } } } },
+  travailleur: { select: { agentId: true, user: { select: { id: true, nom: true, telephone: true } } } },
 } satisfies Prisma.CandidaturesInclude;
 
 const applicationDetailsInclude = {
@@ -64,7 +65,7 @@ export class ApplicationsService {
   async create(worker: CurrentUserPayload, dto: CreateApplicationDto): Promise<ApplicationResponseDto> {
     await this.workerRestriction.assertWorkerCanApply(worker.id);
     try {
-      const application = await this.prisma.$transaction(async (transaction) => {
+      const application = await this.runSerializable(async () => this.prisma.$transaction(async (transaction) => {
         const [workerProfile, mission] = await Promise.all([
           transaction.travailleurs.findFirst({
             where: { userId: worker.id, deletedAt: null },
@@ -72,45 +73,104 @@ export class ApplicationsService {
           }),
           transaction.missions.findFirst({
             where: { id: dto.missionId, deletedAt: null },
-            select: { id: true, statut: true, dateMission: true, dateCloture: true },
+            select: { id: true, statut: true, dateMission: true, dateCloture: true, nombrePostes: true, modeAttribution: true },
           }),
         ]);
         if (!workerProfile) throw new NotFoundException('Worker profile not found');
         if (!mission) throw new NotFoundException('Mission not found');
         this.assertMissionAcceptsApplications(mission);
 
+        // Garde-fou : même si le statut n'a pas encore été recalculé, une mission
+        // dont les postes sont couverts n'accepte plus de candidature.
+        const confirmed = await transaction.candidatures.count({
+          where: { missionId: mission.id, statut: StatutCandidatureEnum.CONFIRMEE },
+        });
+        if (confirmed >= mission.nombrePostes) {
+          throw new ConflictException('Mission is full and no longer accepts applications');
+        }
+
         const existing = await transaction.candidatures.findUnique({
           where: { missionId_travailleurId: { missionId: mission.id, travailleurId: worker.id } },
-          select: { id: true },
+          select: { id: true, statut: true },
         });
-        if (existing) throw new ConflictException('You have already applied to this mission');
+        // Un retrait volontaire libère la candidature : le travailleur peut postuler de nouveau
+        // tant que la mission reste ouverte et que des places sont disponibles.
+        if (existing && existing.statut !== StatutCandidatureEnum.RETIREE) {
+          throw new ConflictException('You have already applied to this mission');
+        }
 
-        const created = await transaction.candidatures.create({
-          data: {
-            id: randomUUID(),
-            missionId: mission.id,
-            travailleurId: worker.id,
-            statut: StatutCandidatureEnum.INTERESSE,
-            canal: CanalEnum.APPLICATION,
-          },
-          include: applicationInclude,
-        });
+        const nextStatut = mission.modeAttribution === ModeAttributionEnum.PREMIER_ARRIVE
+          ? StatutCandidatureEnum.CONFIRMEE
+          : StatutCandidatureEnum.INTERESSE;
+        const created = existing
+          ? await transaction.candidatures.update({
+            where: { id: existing.id },
+            data: { statut: nextStatut, canal: CanalEnum.APPLICATION, dateReponse: new Date() },
+            include: applicationInclude,
+          })
+          : await transaction.candidatures.create({
+            data: {
+              id: randomUUID(),
+              missionId: mission.id,
+              travailleurId: worker.id,
+              statut: nextStatut,
+              canal: CanalEnum.APPLICATION,
+            },
+            include: applicationInclude,
+          });
         await this.historyService.recordApplicationStatus(
           transaction,
           created.id,
-          null,
-          StatutCandidatureEnum.INTERESSE,
+          existing ? existing.statut : null,
+          created.statut,
           worker.id,
         );
-        await this.notifications.notifyRecruiterApplicationCreated(
-          created.mission.recruteurId,
-          created.id,
-          created.missionId,
-          worker.id,
-          transaction,
-        );
+
+        // Mission urgente : le premier travailleur qui répond est confirmé
+        // immédiatement, sans passage par la sélection du recruteur.
+        if (created.statut === StatutCandidatureEnum.CONFIRMEE) {
+          await transaction.confirmations.upsert({
+            where: { candidatureId: created.id },
+            update: {},
+            create: {
+              id: randomUUID(),
+              candidatureId: created.id,
+              dateConfirmation: new Date(),
+              presence: PresenceEnum.NON_SAISIE,
+            },
+          });
+          await this.notifications.notifyRecruiterConfirmationReceived(
+            created.mission.recruteurId,
+            created.id,
+            created.missionId,
+            worker.id,
+            transaction,
+          );
+          const missionFilled = await this.updateFilledMissionStatus(
+            transaction,
+            created.mission.id,
+            created.mission.nombrePostes,
+            created.mission.statut,
+            worker.id,
+          );
+          if (missionFilled) {
+            await this.notifications.notifyMissionFilled(
+              created.mission.recruteurId,
+              created.missionId,
+              transaction,
+            );
+          }
+        } else {
+          await this.notifications.notifyRecruiterApplicationCreated(
+            created.mission.recruteurId,
+            created.id,
+            created.missionId,
+            worker.id,
+            transaction,
+          );
+        }
         return created;
-      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
       return this.toResponse(application);
     } catch (error) {
@@ -127,6 +187,7 @@ export class ApplicationsService {
       : user.role === RoleEnum.RECRUTEUR
         ? { mission: { is: { recruteurId: user.id } } }
         : this.forbiddenRole();
+    if (query.missionId) where.missionId = query.missionId;
     const [applications, total] = await this.prisma.$transaction([
       this.prisma.candidatures.findMany({
         where,
@@ -157,6 +218,11 @@ export class ApplicationsService {
     return this.toDetails(application);
   }
 
+  /** Le travailleur accepte une proposition d'agent (PROPOSEE -> INTERESSE). */
+  interest(user: CurrentUserPayload, id: string): Promise<ApplicationResponseDto> {
+    return this.transition(user, id, RoleEnum.TRAVAILLEUR, StatutCandidatureEnum.INTERESSE);
+  }
+
   select(user: CurrentUserPayload, id: string): Promise<ApplicationResponseDto> {
     return this.transition(user, id, RoleEnum.RECRUTEUR, StatutCandidatureEnum.SELECTIONNEE);
   }
@@ -182,7 +248,7 @@ export class ApplicationsService {
     if (user.role !== requiredRole) throw new ForbiddenException('Your role cannot perform this application transition');
 
     try {
-      const result = await this.prisma.$transaction(async (transaction) => {
+      const result = await this.runSerializable(async () => this.prisma.$transaction(async (transaction) => {
         const application = await transaction.candidatures.findUnique({
           where: { id },
           include: applicationInclude,
@@ -190,6 +256,9 @@ export class ApplicationsService {
         if (!application) throw new NotFoundException('Application not found');
         this.assertCanAccess(user, application);
         this.statusManager.validateTransition(application.statut, nextStatus);
+        if (nextStatus === StatutCandidatureEnum.RETIREE) {
+          this.assertMissionAllowsWithdrawal(application.mission.statut);
+        }
 
         if (nextStatus === StatutCandidatureEnum.CONFIRMEE) {
           this.assertMissionCanBeConfirmed(application.mission.statut);
@@ -214,6 +283,15 @@ export class ApplicationsService {
           user.id,
         );
 
+        if (nextStatus === StatutCandidatureEnum.INTERESSE) {
+          await this.notifications.notifyRecruiterApplicationCreated(
+            application.mission.recruteurId,
+            id,
+            application.missionId,
+            application.travailleurId,
+            transaction,
+          );
+        }
         if (nextStatus === StatutCandidatureEnum.SELECTIONNEE) {
           await this.notifications.notifyWorkerSelected(
             application.travailleurId,
@@ -274,14 +352,70 @@ export class ApplicationsService {
           }
         }
 
+        if (nextStatus === StatutCandidatureEnum.RETIREE) {
+          if (application.statut === StatutCandidatureEnum.CONFIRMEE) {
+            // Le poste redevient disponible : la confirmation disparaît et le
+            // statut de la mission est recalculé (POURVUE -> PARTIELLEMENT_POURVUE).
+            await transaction.confirmations.deleteMany({ where: { candidatureId: id } });
+            await this.refreshMissionAfterWithdrawal(
+              transaction,
+              application.mission.id,
+              application.mission.nombrePostes,
+              application.mission.statut,
+              user.id,
+            );
+          }
+          await this.notifications.notifyRecruiterApplicationWithdrawn(
+            application.mission.recruteurId,
+            id,
+            application.missionId,
+            application.travailleurId,
+            transaction,
+          );
+        }
+
         return updated;
-      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 
       return this.toResponse(result);
     } catch (error) {
       this.throwIfDuplicate(error);
       throw error;
     }
+  }
+
+  private async refreshMissionAfterWithdrawal(
+    transaction: Prisma.TransactionClient,
+    missionId: string,
+    nombrePostes: number,
+    currentStatus: StatutMissionEnum,
+    changedBy: string,
+  ): Promise<void> {
+    const reopenable: StatutMissionEnum[] = [
+      StatutMissionEnum.PUBLIEE,
+      StatutMissionEnum.PARTIELLEMENT_POURVUE,
+      StatutMissionEnum.POURVUE,
+    ];
+    if (!reopenable.includes(currentStatus)) return;
+
+    const confirmedCount = await transaction.candidatures.count({
+      where: { missionId, statut: StatutCandidatureEnum.CONFIRMEE },
+    });
+    const nextStatus = confirmedCount >= nombrePostes
+      ? StatutMissionEnum.POURVUE
+      : confirmedCount > 0
+        ? StatutMissionEnum.PARTIELLEMENT_POURVUE
+        : StatutMissionEnum.PUBLIEE;
+    if (nextStatus === currentStatus) return;
+
+    await transaction.missions.update({ where: { id: missionId }, data: { statut: nextStatus } });
+    await this.historyService.recordMissionStatus(
+      transaction,
+      missionId,
+      currentStatus,
+      nextStatus,
+      changedBy,
+    );
   }
 
   private async updateFilledMissionStatus(
@@ -351,6 +485,25 @@ export class ApplicationsService {
     }
   }
 
+  private assertMissionAllowsWithdrawal(status: StatutMissionEnum): void {
+    if (status === StatutMissionEnum.TERMINEE || status === StatutMissionEnum.ANNULEE) {
+      throw new ConflictException('Mission is over; the application can no longer be withdrawn');
+    }
+  }
+
+  /** Réessaie une transaction sérialisable en cas de conflit concurrent (P2034). */
+  private async runSerializable<T>(operation: () => Promise<T>): Promise<T> {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await operation();
+      } catch (error) {
+        const retryable = error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034';
+        if (!retryable || attempt >= 2) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 25 * (attempt + 1)));
+      }
+    }
+  }
+
   private startOfToday(): Date {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
@@ -379,6 +532,7 @@ export class ApplicationsService {
       travailleur: {
         id: application.travailleur.user.id,
         nom: application.travailleur.user.nom,
+        telephone: application.statut === StatutCandidatureEnum.CONFIRMEE ? application.travailleur.user.telephone : null,
       },
     };
   }

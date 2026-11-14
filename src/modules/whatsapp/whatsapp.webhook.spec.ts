@@ -105,7 +105,7 @@ describe('WhatsappWebhookService', () => {
     );
   });
 
-  it('records a rejected mission proposal as a rejected application with history', async () => {
+  it('records a rejected mission proposal as a withdrawn application with history', async () => {
     const payload = {
       object: 'whatsapp_business_account',
       entry: [{ changes: [{ value: { messages: [{
@@ -119,7 +119,7 @@ describe('WhatsappWebhookService', () => {
       data: expect.objectContaining({
         missionId: 'mission-id',
         travailleurId: 'worker-id',
-        statut: StatutCandidatureEnum.REFUSEE,
+        statut: StatutCandidatureEnum.RETIREE,
         canal: CanalEnum.WHATSAPP,
       }),
     });
@@ -127,7 +127,7 @@ describe('WhatsappWebhookService', () => {
       transaction,
       expect.any(String),
       null,
-      StatutCandidatureEnum.REFUSEE,
+      StatutCandidatureEnum.RETIREE,
       'worker-id',
     );
     expect(transaction.notifications.create).toHaveBeenCalledWith({

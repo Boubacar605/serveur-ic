@@ -7,6 +7,9 @@ export class ApplicationWorkerDto {
 
   @ApiProperty({ example: 'Moussa Diop' })
   nom!: string;
+
+  @ApiProperty({ example: '+221771234567', nullable: true, description: 'Renseigné uniquement pour une candidature confirmée.' })
+  telephone!: string | null;
 }
 
 export class ApplicationMissionDto {

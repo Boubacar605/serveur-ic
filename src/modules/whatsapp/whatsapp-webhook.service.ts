@@ -262,6 +262,14 @@ export class WhatsappWebhookService {
     if (existing) {
       if ([StatutCandidatureEnum.INTERESSE, StatutCandidatureEnum.SELECTIONNEE, StatutCandidatureEnum.CONFIRMEE]
         .includes(existing.statut as never)) return existing.id;
+      if (existing.statut === StatutCandidatureEnum.PROPOSEE) {
+        await this.applications.interest(this.toWorkerPayload(workerId), existing.id);
+        return existing.id;
+      }
+      if (existing.statut === StatutCandidatureEnum.RETIREE) {
+        const revived = await this.applications.create(this.toWorkerPayload(workerId), { missionId });
+        return revived.id;
+      }
       throw new ConflictException('This application cannot accept the WhatsApp proposal in its current state');
     }
     const created = await this.applications.create(this.toWorkerPayload(workerId), { missionId });
@@ -288,13 +296,13 @@ export class WhatsappWebhookService {
         candidatureId = existing.id;
         await transaction.candidatures.update({
           where: { id: existing.id },
-          data: { statut: StatutCandidatureEnum.REFUSEE, dateReponse: new Date() },
+          data: { statut: StatutCandidatureEnum.RETIREE, dateReponse: new Date() },
         });
         await this.applicationHistory.recordApplicationStatus(
           transaction,
           existing.id,
           existing.statut,
-          StatutCandidatureEnum.REFUSEE,
+          StatutCandidatureEnum.RETIREE,
           workerId,
         );
       } else {
@@ -304,7 +312,7 @@ export class WhatsappWebhookService {
             id: candidatureId,
             missionId,
             travailleurId: workerId,
-            statut: StatutCandidatureEnum.REFUSEE,
+            statut: StatutCandidatureEnum.RETIREE,
             canal: CanalEnum.WHATSAPP,
             dateReponse: new Date(),
           },
@@ -313,7 +321,7 @@ export class WhatsappWebhookService {
           transaction,
           candidatureId,
           null,
-          StatutCandidatureEnum.REFUSEE,
+          StatutCandidatureEnum.RETIREE,
           workerId,
         );
       }
@@ -329,13 +337,13 @@ export class WhatsappWebhookService {
       });
       if (!application) throw new NotFoundException('Application not found');
       if (application.travailleurId !== workerId) throw new ForbiddenException('Application does not belong to WhatsApp sender');
-      if (application.statut === StatutCandidatureEnum.REFUSEE) return;
+      if ([StatutCandidatureEnum.REFUSEE, StatutCandidatureEnum.RETIREE].includes(application.statut)) return;
       if (application.statut !== StatutCandidatureEnum.SELECTIONNEE) {
         throw new ConflictException('Only a selected application can be declined');
       }
       const updated = await transaction.candidatures.updateMany({
         where: { id: applicationId, statut: StatutCandidatureEnum.SELECTIONNEE },
-        data: { statut: StatutCandidatureEnum.REFUSEE, dateReponse: new Date() },
+        data: { statut: StatutCandidatureEnum.RETIREE, dateReponse: new Date() },
       });
       if (updated.count === 0) {
         throw new ConflictException('This application was already processed');
@@ -344,7 +352,7 @@ export class WhatsappWebhookService {
         transaction,
         applicationId,
         application.statut,
-        StatutCandidatureEnum.REFUSEE,
+        StatutCandidatureEnum.RETIREE,
         workerId,
       );
       await this.createRecruiterResponseNotification(

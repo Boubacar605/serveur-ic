@@ -63,6 +63,18 @@ export class ApplicationsController {
     return this.applicationsService.getById(user, id);
   }
 
+  @Post(':id/interest')
+  @UseGuards(RolesGuard)
+  @Roles(RoleEnum.TRAVAILLEUR)
+  @ApiOperation({ summary: 'Accept an agent proposal (PROPOSEE to INTERESSE)' })
+  @ApiOkResponse({ type: ApplicationResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid application status transition' })
+  @ApiResponse({ status: 403, description: 'Only the proposed worker can accept' })
+  @ApiNotFoundResponse({ description: 'Application not found' })
+  interest(@CurrentUser() user: CurrentUserPayload, @Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.applicationsService.interest(user, id);
+  }
+
   @Post(':id/select')
   @UseGuards(RolesGuard)
   @Roles(RoleEnum.RECRUTEUR)

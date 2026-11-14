@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -14,28 +15,35 @@ export class SupabaseService {
   constructor(private readonly configService: ConfigService) {}
 
   /**
-   * Crée un compte public via signUp. `hasSession` vaut false quand Supabase
-   * exige la confirmation de l'adresse e-mail : l'inscription renvoie alors
-   * l'e-mail de confirmation et le client doit afficher « vérifiez vos e-mails ».
+   * Crée un compte public *toujours non confirmé*, même si le tableau de bord
+   * Supabase a désactivé la confirmation automatique. L'e-mail de confirmation
+   * est envoyé immédiatement : sans confirmation, la connexion est refusée.
    */
-  async createUser(email: string, password: string): Promise<{ user: User; hasSession: boolean }> {
-    const { data, error } = await this.createAnonClient().auth.signUp({
+  async createUser(email: string, password: string): Promise<{ user: User }> {
+    const admin = this.createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
       email,
       password,
-      options: { emailRedirectTo: this.frontendUrl('/verify-email') },
+      email_confirm: false,
     });
     if (error) {
       const message = error.message.toLowerCase();
-      if (error.code === 'email_exists' || error.code === 'user_already_exists' || message.includes('already registered')) {
+      if (message.includes('already') || message.includes('exists')) {
         throw new ConflictException('An account with this email already exists');
       }
       throw new BadRequestException(error.message);
     }
     if (!data.user) throw new ServiceUnavailableException('Supabase did not return the created user');
-    if (data.user.identities?.length === 0) {
-      throw new ConflictException('An account with this email already exists');
+
+    try {
+      await this.sendSignupConfirmation(email);
+    } catch (sendError) {
+      // Pas d'e-mail possible : on annule la création pour ne pas laisser un
+      // compte zombie que l'utilisateur ne pourrait jamais confirmer.
+      await admin.auth.admin.deleteUser(data.user.id).catch(() => undefined);
+      throw sendError;
     }
-    return { user: data.user, hasSession: Boolean(data.session) };
+    return { user: data.user };
   }
 
   /** Création back-office : le compte est confirmé immédiatement, sans e-mail. */
@@ -57,12 +65,54 @@ export class SupabaseService {
   }
 
   async resendConfirmation(email: string): Promise<void> {
+    await this.sendSignupConfirmation(email);
+  }
+
+  private async sendSignupConfirmation(email: string): Promise<void> {
     const { error } = await this.createAnonClient().auth.resend({
       type: 'signup',
       email,
       options: { emailRedirectTo: this.frontendUrl('/verify-email') },
     });
-    if (error) throw new BadRequestException(error.message);
+    if (error) {
+      const message = error.message.toLowerCase();
+      if (message.includes('already confirmed')) {
+        throw new BadRequestException({
+          message: 'Cette adresse e-mail est déjà confirmée. Vous pouvez vous connecter.',
+          errorCode: 'EMAIL_ALREADY_CONFIRMED',
+        });
+      }
+      throw new ServiceUnavailableException({
+        message: `Supabase n'a pas pu envoyer l'e-mail de confirmation : ${error.message}`,
+        errorCode: 'EMAIL_CONFIRMATION_FAILED',
+      });
+    }
+  }
+
+  /**
+   * Vérifie le lien de confirmation. Deux formats Supabase sont acceptés :
+   * `token_hash` (lien « token hash ») et `access_token` (fragment du lien
+   * par défaut, déjà validé par Supabase avant la redirection).
+   */
+  async verifyEmail(token: string): Promise<void> {
+    if (this.looksLikeJwt(token)) {
+      try {
+        await this.getCurrentUser(token);
+      } catch {
+        throw new BadRequestException({
+          message: 'Le lien de confirmation est invalide ou expiré. Demandez un nouvel e-mail.',
+          errorCode: 'INVALID_CONFIRMATION_LINK',
+        });
+      }
+      return;
+    }
+    const { error } = await this.createAnonClient().auth.verifyOtp({ token_hash: token, type: 'signup' });
+    if (error) {
+      throw new BadRequestException({
+        message: 'Le lien de confirmation est invalide ou expiré. Demandez un nouvel e-mail.',
+        errorCode: 'INVALID_CONFIRMATION_LINK',
+      });
+    }
   }
 
   async deleteUser(userId: string): Promise<void> {
@@ -72,8 +122,30 @@ export class SupabaseService {
 
   async login(email: string, password: string): Promise<AuthTokens> {
     const { data, error } = await this.createAnonClient().auth.signInWithPassword({ email, password });
-    if (error || !data.session || !data.user) {
-      throw new UnauthorizedException('Invalid email or password');
+    if (error) {
+      const message = error.message.toLowerCase();
+      if (error.code === 'email_not_confirmed' || message.includes('email not confirmed')) {
+        throw new ForbiddenException({
+          message: 'Confirmez votre adresse e-mail avant de vous connecter. Vérifiez votre boîte de réception.',
+          errorCode: 'EMAIL_NOT_CONFIRMED',
+        });
+      }
+      throw new UnauthorizedException({
+        message: 'Invalid email or password',
+        errorCode: 'INVALID_CREDENTIALS',
+      });
+    }
+    if (!data.session || !data.user) {
+      throw new UnauthorizedException({
+        message: 'Invalid email or password',
+        errorCode: 'INVALID_CREDENTIALS',
+      });
+    }
+    if (!data.user.email_confirmed_at) {
+      throw new ForbiddenException({
+        message: 'Confirmez votre adresse e-mail avant de vous connecter. Vérifiez votre boîte de réception.',
+        errorCode: 'EMAIL_NOT_CONFIRMED',
+      });
     }
     return this.toAuthTokens(data.session, data.user);
   }
@@ -177,9 +249,15 @@ export class SupabaseService {
     return this.configService.get<string>('supabase.pictureBucket') ?? 'pictureProfile';
   }
 
-  /** FRONTEND_URL peut contenir plusieurs origines séparées par des virgules. */
+  /**
+   * Base des liens envoyés par e-mail (confirmation, réinitialisation).
+   * `AUTH_REDIRECT_URL` est prioritaire ; sinon FRONTEND_URL accepte plusieurs
+   * origines séparées par des virgules. L'origine retenue doit être déclarée
+   * dans Supabase (Site URL / Redirect URLs) avec le chemin /verify-email.
+   */
   private frontendUrl(path: string): string {
-    const configured = this.configService.get<string>('FRONTEND_URL') ?? '';
+    const dedicated = this.configService.get<string>('AUTH_REDIRECT_URL')?.trim();
+    const configured = dedicated || (this.configService.get<string>('FRONTEND_URL') ?? '');
     const first = configured.split(',').map((value) => value.trim()).find(Boolean) ?? 'http://localhost:8081';
     return `${first.replace(/\/+$/, '')}${path}`;
   }

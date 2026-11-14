@@ -61,6 +61,11 @@ const missionInclude = {
     },
   },
   _count: { select: { candidatures: true } },
+  // Candidatures confirmées : sert à retirer une mission dont les postes sont couverts.
+  candidatures: {
+    where: { confirmation: { isNot: null } },
+    select: { id: true },
+  },
 } satisfies Prisma.MissionsInclude;
 
 type MissionRecord = Prisma.MissionsGetPayload<{ include: typeof missionInclude }>;
@@ -87,7 +92,10 @@ export class MissionsService {
       }),
       this.prisma.missions.count({ where }),
     ]);
-    return this.toMissionList(missions, page, limit, total);
+    // Filet de sécurité : une mission dont tous les postes sont confirmés ne
+    // doit jamais apparaître, même si son statut n'a pas encore été recalculé.
+    const available = missions.filter((mission) => !this.isMissionFull(mission));
+    return this.toMissionList(available, page, limit, total);
   }
 
   async listMine(recruiterId: string, query: MissionQueryDto): Promise<MissionListDto> {
@@ -124,8 +132,19 @@ export class MissionsService {
       throw new NotFoundException('Mission not found');
     }
     const canSeeAll = requester?.role === RoleEnum.ADMINISTRATEUR || requester?.id === mission.recruteurId;
-    if (!canSeeAll && (!OPEN_MISSION_STATUSES.includes(mission.statut) || this.isMissionExpired(mission.dateMission))) {
-      throw new NotFoundException('Mission not found');
+    const unavailable = !OPEN_MISSION_STATUSES.includes(mission.statut)
+      || this.isMissionExpired(mission.dateMission)
+      || this.isMissionFull(mission);
+    if (!canSeeAll && unavailable) {
+      // Une mission complète ou fermée disparaît des annonces, mais le
+      // travailleur qui y a postulé doit toujours pouvoir l'ouvrir (se retirer).
+      const hasApplication = requester
+        ? await this.prisma.candidatures.findUnique({
+          where: { missionId_travailleurId: { missionId: id, travailleurId: requester.id } },
+          select: { id: true },
+        })
+        : null;
+      if (!hasApplication) throw new NotFoundException('Mission not found');
     }
 
     const nombreConfirmations = await this.prisma.confirmations.count({
@@ -174,6 +193,7 @@ export class MissionsService {
     });
 
     return missions
+      .filter((mission) => !this.isMissionFull(mission))
       .map((mission) => ({
         ...this.toMissionResponse(mission),
         matchingScore: this.recommendationScorer.score(mission, context),
@@ -417,9 +437,14 @@ export class MissionsService {
         raisonSociale: mission.recruteur.raisonSociale,
       },
       nombreCandidatures: mission._count.candidatures,
+      placesRestantes: this.calculateRemainingSeats(mission.nombrePostes, mission.candidatures.length),
       createdAt: mission.createdAt.toISOString(),
       updatedAt: mission.updatedAt.toISOString(),
     };
+  }
+
+  private isMissionFull(mission: MissionRecord): boolean {
+    return mission.candidatures.length >= mission.nombrePostes;
   }
 
   private calculateRemainingSeats(nombrePostes: number, nombreConfirmations: number): number {

@@ -12,13 +12,15 @@ paths:
               $ref: "#/components/schemas/RegisterWorkerDto"
       responses:
         201:
-          description: "Worker account created"
+          description: "Worker account created; a confirmation e-mail is sent and login stays blocked until the address is confirmed"
         400:
           description: "Invalid registration data"
         404:
           description: "Agent referral code not found"
         409:
           description: "Email or phone already exists"
+        503:
+          description: "EMAIL_CONFIRMATION_FAILED: the confirmation e-mail could not be sent"
       summary: "Register a worker through Supabase Auth"
       tags:
         - "Auth"
@@ -34,12 +36,36 @@ paths:
               $ref: "#/components/schemas/RegisterRecruiterDto"
       responses:
         201:
-          description: "Recruiter account created"
+          description: "Recruiter account created; a confirmation e-mail is sent and login stays blocked until the address is confirmed"
         400:
           description: "Invalid registration data"
         409:
           description: "Email or phone already exists"
+        503:
+          description: "EMAIL_CONFIRMATION_FAILED: the confirmation e-mail could not be sent"
       summary: "Register a recruiter through Supabase Auth"
+      tags:
+        - "Auth"
+  /auth/register/agent:
+    post:
+      operationId: "AuthController_registerAgent"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterAgentDto"
+      responses:
+        201:
+          description: "Agent account created; a confirmation e-mail is sent and login stays blocked until the address is confirmed"
+        400:
+          description: "Invalid registration data"
+        409:
+          description: "Email or phone already exists"
+        503:
+          description: "EMAIL_CONFIRMATION_FAILED: the confirmation e-mail could not be sent"
+      summary: "Register an agent through Supabase Auth"
       tags:
         - "Auth"
   /auth/login:
@@ -56,7 +82,9 @@ paths:
         200:
           description: "Access and refresh tokens"
         401:
-          description: "Invalid credentials"
+          description: "INVALID_CREDENTIALS: invalid email or password"
+        403:
+          description: "EMAIL_NOT_CONFIRMED: the e-mail address must be confirmed before logging in"
       summary: "Authenticate through Supabase Auth"
       tags:
         - "Auth"
@@ -111,10 +139,48 @@ paths:
               $ref: "#/components/schemas/ForgotPasswordDto"
       responses:
         200:
-          description: "Password reset request accepted"
+          description: "Password reset request accepted; Supabase sends the recovery link when the address exists"
         400:
           description: "Invalid email"
       summary: "Send a password reset email"
+      tags:
+        - "Auth"
+  /auth/resend-confirmation:
+    post:
+      operationId: "AuthController_resendConfirmation"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordDto"
+      responses:
+        200:
+          description: "Confirmation e-mail request accepted"
+        400:
+          description: "EMAIL_ALREADY_CONFIRMED: the address is already confirmed"
+        503:
+          description: "EMAIL_CONFIRMATION_FAILED: the confirmation e-mail could not be sent"
+      summary: "Resend the sign-up confirmation email"
+      tags:
+        - "Auth"
+  /auth/verify-email:
+    post:
+      operationId: "AuthController_verifyEmail"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailDto"
+      responses:
+        200:
+          description: "Email confirmed; the account can now log in"
+        400:
+          description: "INVALID_CONFIRMATION_LINK: malformed, expired or already used token"
+      summary: "Confirm an e-mail address with the token from the Supabase link"
       tags:
         - "Auth"
   /auth/reset-password:
@@ -2611,6 +2677,39 @@ components:
         - "telephone"
         - "typeRecruteur"
         - "raisonSociale"
+    RegisterAgentDto:
+      type: "object"
+      properties:
+        email:
+          type: "string"
+          format: "email"
+        password:
+          type: "string"
+          format: "password"
+          minLength: 8
+        confirmationPassword:
+          type: "string"
+          format: "password"
+          minLength: 8
+        nom:
+          type: "string"
+        telephone:
+          type: "string"
+          example: "+221771234567"
+          pattern: "^\\+2217\\d{8}$"
+        perimetre:
+          type: "string"
+          nullable: true
+        langue:
+          type: "string"
+          example: "fr"
+      required:
+        - "email"
+        - "password"
+        - "confirmationPassword"
+        - "nom"
+        - "telephone"
+        - "langue"
     LoginDto:
       type: "object"
       properties:
@@ -2639,6 +2738,15 @@ components:
           format: "email"
       required:
         - "email"
+    VerifyEmailDto:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+          minLength: 10
+          description: "token_hash (Supabase e-mail link) or access token"
+      required:
+        - "token"
     ResetPasswordDto:
       type: "object"
       properties:

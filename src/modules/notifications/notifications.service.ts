@@ -21,7 +21,7 @@ import { MissionBroadcastDto } from './dto/mission-broadcast.dto';
 import { MissionBroadcastResponseDto } from './dto/mission-broadcast-response.dto';
 import { NotificationDto } from './dto/notification.dto';
 import { NotificationFactory, NotificationFactoryInput, NotificationType } from './notification.factory';
-import { WorkerRestrictionService } from '../commissions/worker-restriction.service';
+import { WorkerRestrictionService, COMMISSION_PAYMENT_REQUIRED } from '../commissions/worker-restriction.service';
 
 const notificationSelect = {
   id: true,
@@ -120,6 +120,21 @@ export class NotificationsService {
     return this.createTargeted({
       recipientUserId: recruiterId,
       type: 'MISSION_CONFIRMEE',
+      missionId,
+      payload: { applicationId, missionId, workerId },
+    }, transaction);
+  }
+
+  notifyRecruiterApplicationWithdrawn(
+    recruiterId: string,
+    applicationId: string,
+    missionId: string,
+    workerId: string,
+    transaction?: Prisma.TransactionClient,
+  ): Promise<void> {
+    return this.createTargeted({
+      recipientUserId: recruiterId,
+      type: 'CANDIDATURE_RETIREE',
       missionId,
       payload: { applicationId, missionId, workerId },
     }, transaction);
@@ -403,14 +418,20 @@ export class NotificationsService {
     const compatibleWorkers = workers.filter((worker) =>
       worker.disponibilites.some((availability) => this.isAvailabilityCompatible(mission, availability)),
     );
-    if (compatibleWorkers.length !== dto.workerIds.length) {
-      throw new BadRequestException('Every selected worker must be active and compatible with the mission');
+    if (!compatibleWorkers.length) {
+      throw new BadRequestException('None of the selected workers is compatible with this mission');
     }
-    await this.workerRestriction.assertWorkersCanReceiveProposals(compatibleWorkers.map(({ userId }) => userId));
+    const { allowed } = await this.workerRestriction.splitByRestriction(
+      compatibleWorkers.map(({ userId }) => userId),
+    );
+    if (!allowed.length) throw new ForbiddenException(COMMISSION_PAYMENT_REQUIRED);
+    const allowedIds = new Set(allowed);
+    const recipients = compatibleWorkers.filter(({ userId }) => allowedIds.has(userId));
 
-    const agentIds = compatibleWorkers.flatMap((worker) => worker.agentId ? [worker.agentId] : []);
+    const skippedWorkerIds = dto.workerIds.filter((workerId) => !allowedIds.has(workerId));
+    const agentIds = recipients.flatMap((worker) => worker.agentId ? [worker.agentId] : []);
     await this.prisma.$transaction(async (transaction) => {
-      for (const worker of compatibleWorkers) {
+      for (const worker of recipients) {
         await this.notifyWorkerMissionProposal(worker.userId, mission.id, transaction);
         if (worker.agentId) {
           await this.notifyAgentMissionProposal(worker.agentId, worker.userId, mission.id, transaction);
@@ -420,9 +441,10 @@ export class NotificationsService {
 
     return {
       missionId: mission.id,
-      workersNotified: compatibleWorkers.length,
+      workersNotified: recipients.length,
       agentsNotified: agentIds.length,
-      notificationsCreated: compatibleWorkers.length + agentIds.length,
+      notificationsCreated: recipients.length + agentIds.length,
+      skippedWorkerIds,
     };
   }
 

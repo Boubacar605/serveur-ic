@@ -18,8 +18,26 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  const nodeEnv = configService.get<string>('NODE_ENV') ?? process.env.NODE_ENV ?? 'development';
+  const allowedOrigins = (configService.get<string>('FRONTEND_URL') ?? '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+  // En développement/test, le frontend web est aussi ouvert depuis le réseau local
+  // (autre PC, téléphone) : sans ces origines le navigateur bloque les appels alors
+  // que l'application native fonctionne. En production, seule FRONTEND_URL compte.
+  const privateOrigin =
+    /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d{1,5})?$/;
+
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL')?.split(',').map((origin) => origin.trim()) ?? true,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // requêtes natives, curl, SSR
+      const normalized = origin.replace(/\/+$/, '');
+      if (!allowedOrigins.length) return callback(null, nodeEnv !== 'production');
+      if (allowedOrigins.includes(normalized)) return callback(null, true);
+      if (nodeEnv !== 'production' && privateOrigin.test(normalized)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   });
   app.enableShutdownHooks();

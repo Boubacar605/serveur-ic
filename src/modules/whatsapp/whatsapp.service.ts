@@ -108,9 +108,12 @@ export class WhatsappService {
       },
       select: { userId: true, user: { select: { telephone: true } } },
     });
+    const { allowed } = await this.restrictions.splitByRestriction(dto.workerIds);
+    const allowedIds = new Set(allowed);
     const workerMap = new Map(workers.map((worker) => [worker.userId, worker]));
     const createdAfter = new Date(Date.now() - 60_000);
     const results = await Promise.all(dto.workerIds.map(async (workerId) => {
+      if (!allowedIds.has(workerId)) return { workerId, status: 'SKIPPED_RESTRICTED' as const };
       const worker = workerMap.get(workerId);
       if (!worker) return { workerId, status: 'NOT_FOUND' as const };
       const phone = worker.user.telephone;
@@ -133,6 +136,7 @@ export class WhatsappService {
         const message = error instanceof Error ? error.message : 'Meta API request failed';
         await this.history.recordEvent(notificationId, StatutMessageEnum.ECHEC, {
           kind: 'MISSION_PROPOSAL',
+          senderId: user.id,
           error: message,
         }).catch(() => undefined);
         return { workerId, status: 'FAILED' as const, error: message };
@@ -141,6 +145,7 @@ export class WhatsappService {
         metaMessageId: response.messages?.[0]?.id ?? null,
         metaResponse: response as unknown as Prisma.InputJsonObject,
         kind: 'MISSION_PROPOSAL',
+        senderId: user.id,
       });
       return { workerId, status: 'SENT' as const };
     }));
@@ -205,12 +210,14 @@ export class WhatsappService {
         metaResponse: response as unknown as Prisma.InputJsonObject,
         kind: 'MISSION_SELECTION',
         applicationId: application.id,
+        senderId: user.id,
       });
       return { applicationId: application.id, status: 'SENT' };
     } catch (error) {
       await this.history.recordEvent(notificationId, StatutMessageEnum.ECHEC, {
         kind: 'MISSION_SELECTION',
         applicationId: application.id,
+        senderId: user.id,
         error: error instanceof Error ? error.message : 'Meta API request failed',
       });
       throw error;
@@ -246,11 +253,13 @@ export class WhatsappService {
         metaMessageId: response.messages?.[0]?.id ?? null,
         metaResponse: response as unknown as Prisma.InputJsonObject,
         kind: 'MISSION_REMINDER',
+        senderId: user.id,
       });
       return { missionId, workerId, metaMessageId: response.messages?.[0]?.id ?? null };
     } catch (error) {
       await this.history.updateWhatsAppDelivery(notificationId, StatutMessageEnum.ECHEC, {
         kind: 'MISSION_REMINDER',
+        senderId: user.id,
         error: error instanceof Error ? error.message : 'Meta API request failed',
       });
       throw error;
