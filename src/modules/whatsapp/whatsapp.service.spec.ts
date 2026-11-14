@@ -64,15 +64,15 @@ describe('WhatsappService', () => {
       heureDebut: null,
       heureFin: null,
       metier: { libelle: 'Maçon' },
-      zone: { nom: 'Cocody' },
+      zone: { nom: 'Médina' },
     });
     prisma.travailleurs.findMany.mockResolvedValue([{
       userId: 'worker-id',
-      user: { telephone: '+2250700000000' },
+      user: { telephone: '+221771234569' },
     }]);
     history.findNotificationId.mockResolvedValue('notification-id');
     history.recordEvent.mockResolvedValue(undefined);
-    templates.missionProposal.mockReturnValue({ messaging_product: 'whatsapp', to: '+2250700000000' });
+    templates.missionProposal.mockReturnValue({ messaging_product: 'whatsapp', to: '+221771234569' });
   });
 
   afterEach(() => jest.restoreAllMocks());

@@ -4,8 +4,8 @@ import { DashboardResponseDto } from './dashboard-response.dto';
 
 export class WorkerDashboardProfileDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) nom!: string;
-  @ApiProperty({ example: '+2250701020304', nullable: true }) telephone!: string | null;
+  @ApiProperty({ example: 'Moussa Diop' }) nom!: string;
+  @ApiProperty({ example: '+221771234567', nullable: true }) telephone!: string | null;
   @ApiProperty({ example: 'fr' }) langue!: string;
   @ApiProperty({ format: 'uri' }) photoUrl!: string;
   @ApiProperty({ example: 92.5, nullable: true }) scoreFiabilite!: number | null;
@@ -31,7 +31,7 @@ export class WorkerDashboardMissionDto {
   @ApiProperty({ example: 'Chantier de construction' }) description!: string | null;
   @ApiProperty({ format: 'date', example: '2027-01-15' }) dateMission!: string;
   @ApiProperty({ example: 'Maçon' }) metier!: string;
-  @ApiProperty({ example: 'Cocody' }) zone!: string;
+  @ApiProperty({ example: 'Médina' }) zone!: string;
   @ApiProperty({ enum: StatutCandidatureEnum }) statut!: StatutCandidatureEnum;
 }
 

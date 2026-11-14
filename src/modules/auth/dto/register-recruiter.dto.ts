@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TypeRecruteurEnum } from '@prisma/client';
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
 
 export class RegisterRecruiterDto {
   @ApiProperty({ format: 'email' })
@@ -17,9 +17,9 @@ export class RegisterRecruiterDto {
   @IsNotEmpty()
   nom!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '+221771234567' })
   @IsString()
-  @IsNotEmpty()
+  @Matches(/^\+2217\d{8}$/, { message: 'telephone must be a Senegalese mobile number (+2217XXXXXXXX)' })
   telephone!: string;
 
   @ApiProperty({ enum: TypeRecruteurEnum })

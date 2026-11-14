@@ -14,5 +14,6 @@ export interface AuthTokens {
     nom?: string | null;
     role?: RoleEnum;
     statut?: StatutCompteEnum;
+    isPremium?: boolean;
   };
 }

@@ -49,7 +49,7 @@ export class AgentsService {
         perimetre: true,
         codeParrainage: true,
         createdAt: true,
-        user: { select: { nom: true, telephone: true, langue: true, photoUrl: true } },
+        user: { select: { nom: true, telephone: true, langue: true, photoUrl: true, isPremium: true } },
       },
     });
     if (!agent) throw new NotFoundException('Agent profile not found');
@@ -64,6 +64,7 @@ export class AgentsService {
       photoUrl: this.avatars.resolve(agent.user.photoUrl),
       codeParrainage: agent.codeParrainage,
       perimetre: agent.perimetre,
+      isPremium: agent.user.isPremium,
       workersManaged,
       createdAt: agent.createdAt.toISOString(),
     };

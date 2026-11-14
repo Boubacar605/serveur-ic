@@ -15,7 +15,7 @@ export class MissionMetierDto {
 export class MissionZoneDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
-  @ApiProperty({ example: 'Cocody' })
+  @ApiProperty({ example: 'Médina' })
   nom!: string;
   @ApiProperty({ enum: NiveauZoneEnum })
   niveau!: NiveauZoneEnum;
@@ -24,7 +24,7 @@ export class MissionZoneDto {
 export class MissionRecruiterDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
-  @ApiProperty({ example: 'Awa Traoré' })
+  @ApiProperty({ example: 'Aïssatou Ndiaye' })
   nom!: string;
   @ApiProperty({ enum: TypeRecruteurEnum })
   typeRecruteur!: TypeRecruteurEnum;

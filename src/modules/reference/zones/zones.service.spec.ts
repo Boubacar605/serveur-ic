@@ -12,7 +12,7 @@ describe('ZonesService', () => {
   });
 
   it('lists non-deleted zones in hierarchy order', async () => {
-    prisma.zones.findMany.mockResolvedValue([{ id: 'zone-id', nom: 'Cocody', niveau: 'COMMUNE', parentId: null }]);
+    prisma.zones.findMany.mockResolvedValue([{ id: 'zone-id', nom: 'Médina', niveau: 'COMMUNE', parentId: null }]);
     await expect(service.list()).resolves.toHaveLength(1);
     expect(prisma.zones.findMany).toHaveBeenCalledWith({
       where: { deletedAt: null },
@@ -24,12 +24,12 @@ describe('ZonesService', () => {
   it('returns a zone with its parent and children', async () => {
     prisma.zones.findFirst.mockResolvedValue({
       id: 'zone-id',
-      nom: 'Cocody',
-      parent: { id: 'parent-id', nom: 'Abidjan' },
+      nom: 'Médina',
+      parent: { id: 'parent-id', nom: 'Dakar' },
       children: [],
     });
     await expect(service.getById('zone-id')).resolves.toMatchObject({
-      parent: { id: 'parent-id', nom: 'Abidjan' },
+      parent: { id: 'parent-id', nom: 'Dakar' },
     });
   });
 

@@ -5,7 +5,7 @@ export class ApplicationWorkerDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'Kouassi Jean' })
+  @ApiProperty({ example: 'Moussa Diop' })
   nom!: string;
 }
 

@@ -5,7 +5,7 @@ export class WorkerPublicProfileDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'Kouassi Jean' })
+  @ApiProperty({ example: 'Moussa Diop' })
   nom!: string;
 
   @ApiProperty({ format: 'uri' })

@@ -68,7 +68,7 @@ export class AdminController {
 
   @Patch('users/:id/premium')
   @ApiOperation({ summary: 'Manually activate or deactivate Premium for a user' })
-  @ApiOkResponse({ type: AdminUserDto, example: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61', nom: 'Kouassi Jean', role: 'TRAVAILLEUR', statut: 'ACTIF', isPremium: true } })
+  @ApiOkResponse({ type: AdminUserDto, example: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61', nom: 'Moussa Diop', role: 'TRAVAILLEUR', statut: 'ACTIF', isPremium: true } })
   @ApiNotFoundResponse({ description: 'User not found' })
   updatePremium(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string, @Body() dto: UpdatePremiumDto) {
     return this.adminService.updatePremium(id, dto);

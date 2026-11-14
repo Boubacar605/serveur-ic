@@ -3,7 +3,7 @@ import { NiveauZoneEnum } from '@prisma/client';
 import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateZoneDto {
-  @ApiProperty({ example: 'Cocody' })
+  @ApiProperty({ example: 'Médina' })
   @IsString()
   nom!: string;
 

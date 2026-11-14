@@ -10,13 +10,13 @@ export class AgentWorkerMetierDto {
 
 export class AgentWorkerZoneDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'Cocody' }) nom!: string;
+  @ApiProperty({ example: 'Médina' }) nom!: string;
 }
 
 export class AgentWorkerDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) nom!: string;
-  @ApiPropertyOptional({ example: '+2250701020304', nullable: true }) telephone!: string | null;
+  @ApiProperty({ example: 'Moussa Diop' }) nom!: string;
+  @ApiPropertyOptional({ example: '+221771234567', nullable: true }) telephone!: string | null;
   @ApiProperty({ format: 'uri' }) photoUrl!: string;
   @ApiPropertyOptional({ example: 92.5, nullable: true }) scoreFiabilite!: number | null;
   @ApiProperty({ example: true }) possedeSonMateriel!: boolean;

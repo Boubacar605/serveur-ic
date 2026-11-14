@@ -53,7 +53,7 @@ export class WhatsappController {
     type: WebhookPayloadDto,
     examples: {
       delivered: { value: { object: 'whatsapp_business_account', entry: [{ changes: [{ value: { statuses: [{ id: 'wamid.example', status: 'delivered' }] } }] }] } },
-      buttonReply: { value: { object: 'whatsapp_business_account', entry: [{ changes: [{ value: { messages: [{ from: '2250701020304', interactive: { button_reply: { id: 'xeuysil:proposal:MISSION_UUID:accept', title: 'ACCEPTER' } } }] } }] }] } },
+      buttonReply: { value: { object: 'whatsapp_business_account', entry: [{ changes: [{ value: { messages: [{ from: '221771234567', interactive: { button_reply: { id: 'xeuysil:proposal:MISSION_UUID:accept', title: 'ACCEPTER' } } }] } }] }] } },
     },
   })
   @ApiResponse({ status: 200, description: 'Webhook payload processed' })

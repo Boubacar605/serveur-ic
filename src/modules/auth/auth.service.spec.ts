@@ -55,8 +55,8 @@ describe('AuthService', () => {
 
   it('creates a Supabase identity and worker profile without persisting the password', async () => {
     const dto: RegisterWorkerDto = {
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       email: 'worker@example.com',
       password: 'StrongPass123!',
       confirmationPassword: 'StrongPass123!',
@@ -82,8 +82,8 @@ describe('AuthService', () => {
   it('rolls back the Supabase identity when an agent referral code is unknown', async () => {
     transaction.agents.findUnique.mockResolvedValue(null);
     const dto: RegisterWorkerDto = {
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       email: 'worker@example.com',
       password: 'StrongPass123!',
       confirmationPassword: 'StrongPass123!',
@@ -103,8 +103,8 @@ describe('AuthService', () => {
   it('notifies only the referral agent when a worker registers with an agent code', async () => {
     transaction.agents.findUnique.mockResolvedValue({ userId: 'agent-id' });
     await service.registerWorker({
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       email: 'worker@example.com',
       password: 'StrongPass123!',
       confirmationPassword: 'StrongPass123!',
@@ -121,8 +121,8 @@ describe('AuthService', () => {
 
   it('creates a recruiter profile and recruiter record transactionally', async () => {
     const dto: RegisterRecruiterDto = {
-      nom: 'Awa Traoré',
-      telephone: '+2250701020305',
+      nom: 'Aïssatou Ndiaye',
+      telephone: '+221771234568',
       email: 'recruiter@example.com',
       password: 'StrongPass123!',
       typeRecruteur: 'ENTREPRISE' as RegisterRecruiterDto['typeRecruteur'],
@@ -142,8 +142,8 @@ describe('AuthService', () => {
     const user: CurrentUserPayload = { id: 'auth-user-id', email: 'worker@example.com', role: RoleEnum.TRAVAILLEUR };
     const profile = {
       id: user.id,
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       role: user.role,
       statut: 'ACTIF',
       langue: 'fr',
@@ -178,7 +178,7 @@ describe('AuthService', () => {
     };
     supabase.login.mockResolvedValue(tokens);
     prisma.profiles.findUnique.mockResolvedValue({
-      nom: 'Kouassi Jean',
+      nom: 'Moussa Diop',
       role: RoleEnum.TRAVAILLEUR,
       statut: 'ACTIF',
       deletedAt: null,
@@ -187,7 +187,7 @@ describe('AuthService', () => {
     await expect(service.login({ email: 'worker@example.com', password: 'StrongPass123!' }))
       .resolves.toEqual({
         ...tokens,
-        user: { ...tokens.user, nom: 'Kouassi Jean', role: RoleEnum.TRAVAILLEUR, statut: 'ACTIF' },
+        user: { ...tokens.user, nom: 'Moussa Diop', role: RoleEnum.TRAVAILLEUR, statut: 'ACTIF' },
       });
   });
 

@@ -5,7 +5,7 @@ export class WorkerCommissionDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty({ format: 'uuid' }) missionId!: string;
   @ApiPropertyOptional({ example: 'Maçon', nullable: true }) metier!: string | null;
-  @ApiPropertyOptional({ example: 'Cocody', nullable: true }) zone!: string | null;
+  @ApiPropertyOptional({ example: 'Médina', nullable: true }) zone!: string | null;
   @ApiProperty({ format: 'date', example: '2026-11-01' }) missionDate!: string;
   @ApiProperty({ example: 10000 }) grossAmount!: number;
   @ApiProperty({ example: 1000 }) commissionAmount!: number;

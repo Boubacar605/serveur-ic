@@ -72,7 +72,7 @@ describe('WhatsappWebhookService', () => {
     const payload = {
       object: 'whatsapp_business_account',
       entry: [{ changes: [{ value: { messages: [{
-        from: '2250700000000',
+        from: '221771234569',
         interactive: { button_reply: { id: 'xeuysil:proposal:mission-id:accept' } },
       }] } }] }],
     };
@@ -93,7 +93,7 @@ describe('WhatsappWebhookService', () => {
     const payload = {
       object: 'whatsapp_business_account',
       entry: [{ changes: [{ value: { messages: [{
-        from: '2250700000000',
+        from: '221771234569',
         interactive: { button_reply: { id: 'xeuysil:selection:application-id:confirm' } },
       }] } }] }],
     };
@@ -109,7 +109,7 @@ describe('WhatsappWebhookService', () => {
     const payload = {
       object: 'whatsapp_business_account',
       entry: [{ changes: [{ value: { messages: [{
-        from: '2250700000000',
+        from: '221771234569',
         interactive: { button_reply: { id: 'xeuysil:proposal:mission-id:reject' } },
       }] } }] }],
     };

@@ -21,8 +21,8 @@ export class BootstrapController {
       user: {
         id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61',
         email: 'worker@example.com',
-        nom: 'Kouassi Jean',
-        telephone: '+2250701020304',
+        nom: 'Moussa Diop',
+        telephone: '+221771234567',
         role: 'TRAVAILLEUR',
         statut: 'ACTIF',
         langue: 'fr',
@@ -32,7 +32,7 @@ export class BootstrapController {
       notifications: { unreadCount: 2 },
       dashboard: {
         role: 'TRAVAILLEUR',
-        profile: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61', nom: 'Kouassi Jean', telephone: '+2250701020304', langue: 'fr', scoreFiabilite: 92.5, possedeSonMateriel: true },
+        profile: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61', nom: 'Moussa Diop', telephone: '+221771234567', langue: 'fr', scoreFiabilite: 92.5, possedeSonMateriel: true },
         stats: { scoreFiabilite: 92.5, applicationsTotal: 24, applicationsPending: 3, applicationsConfirmed: 5, missionsCompleted: 12, grossRevenue: 540000, totalCommission: 54000, netRevenue: 486000 },
         upcomingMissions: [],
         recentApplications: [],

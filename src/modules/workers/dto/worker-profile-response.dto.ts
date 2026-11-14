@@ -5,7 +5,7 @@ export class WorkerAgentDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'Awa Traoré' })
+  @ApiProperty({ example: 'Aïssatou Ndiaye' })
   nom!: string;
 
   @ApiProperty({ example: 'AGENT-2026-001', nullable: true })
@@ -33,7 +33,7 @@ export class WorkerZoneDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'Cocody' })
+  @ApiProperty({ example: 'Médina' })
   nom!: string;
 
   @ApiProperty({ enum: NiveauZoneEnum })
@@ -47,10 +47,10 @@ export class WorkerProfileResponseDto {
   @ApiProperty({ format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'Kouassi Jean' })
+  @ApiProperty({ example: 'Moussa Diop' })
   nom!: string;
 
-  @ApiProperty({ example: '+2250701020304', nullable: true })
+  @ApiProperty({ example: '+221771234567', nullable: true })
   telephone!: string | null;
 
   @ApiProperty({ example: 'fr' })

@@ -84,7 +84,7 @@ describe('AdminService', () => {
   it('updates account status and creates a notification addressed only to that user', async () => {
     const dto: UpdateUserStatusDto = { statut: StatutCompteEnum.SUSPENDU };
     const user = {
-      id: 'user-id', nom: 'Kouassi Jean', telephone: null,
+      id: 'user-id', nom: 'Moussa Diop', telephone: null,
       role: RoleEnum.TRAVAILLEUR, statut: StatutCompteEnum.SUSPENDU,
       isPremium: false, createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
@@ -102,7 +102,7 @@ describe('AdminService', () => {
 
   it('activates Premium through a profile update', async () => {
     const premiumUser = {
-      id: 'user-id', nom: 'Kouassi Jean', telephone: null,
+      id: 'user-id', nom: 'Moussa Diop', telephone: null,
       role: RoleEnum.TRAVAILLEUR, statut: StatutCompteEnum.ACTIF,
       isPremium: true, createdAt: new Date('2026-01-01T00:00:00.000Z'),
     };
@@ -156,7 +156,7 @@ describe('AdminService', () => {
       ['worker-2', 1000n],
     ]));
     prisma.travailleurs.findMany.mockResolvedValue([{
-      userId: 'worker-1', user: { nom: 'Kouassi Jean', telephone: '+2250701020304' },
+      userId: 'worker-1', user: { nom: 'Moussa Diop', telephone: '+221771234567' },
     }]);
 
     await expect(service.getRestrictedWorkers()).resolves.toMatchObject({

@@ -1,18 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { RoleEnum } from '@prisma/client';
-import { IsEmail, IsEnum, IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsIn, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateAdminUserDto {
-  @ApiProperty({ example: 'Awa Traoré' })
+  @ApiProperty({ example: 'Aïssatou Ndiaye' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   nom!: string;
 
-  @ApiProperty({ example: '+2250701020305' })
+  @ApiProperty({ example: '+221771234568' })
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(30)
+  @Matches(/^\+2217\d{8}$/, { message: 'telephone must be a Senegalese mobile number (+2217XXXXXXXX)' })
   telephone!: string;
 
   @ApiProperty({ format: 'email' })

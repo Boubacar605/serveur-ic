@@ -63,7 +63,7 @@ describe('ApplicationsService', () => {
       recruteurId: recruiter.id,
       statut: StatutMissionEnum.PUBLIEE,
     },
-    travailleur: { agentId: 'agent-id', user: { id: worker.id, nom: 'Kouassi Jean' } },
+    travailleur: { agentId: 'agent-id', user: { id: worker.id, nom: 'Moussa Diop' } },
   });
 
   beforeEach(() => {

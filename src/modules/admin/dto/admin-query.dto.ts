@@ -30,7 +30,7 @@ export class AdminUserQueryDto {
   @IsOptional() @IsString()
   nom?: string;
 
-  @ApiPropertyOptional({ example: '+2250701' })
+  @ApiPropertyOptional({ example: '+2217712' })
   @IsOptional() @IsString()
   telephone?: string;
 }

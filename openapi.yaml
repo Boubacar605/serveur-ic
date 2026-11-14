@@ -179,8 +179,8 @@ paths:
                 user:
                   id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
                   email: "worker@example.com"
-                  nom: "Kouassi Jean"
-                  telephone: "+2250701020304"
+                  nom: "Moussa Diop"
+                  telephone: "+221771234567"
                   role: "TRAVAILLEUR"
                   statut: "ACTIF"
                   langue: "fr"
@@ -195,8 +195,8 @@ paths:
                   role: "TRAVAILLEUR"
                   profile:
                     id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
-                    nom: "Kouassi Jean"
-                    telephone: "+2250701020304"
+                    nom: "Moussa Diop"
+                    telephone: "+221771234567"
                     langue: "fr"
                     scoreFiabilite: 92.5
                     possedeSonMateriel: true
@@ -315,14 +315,14 @@ paths:
                 $ref: "#/components/schemas/WorkerProfileResponseDto"
               example:
                 id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
-                nom: "Kouassi Jean"
-                telephone: "+2250701020304"
+                nom: "Moussa Diop"
+                telephone: "+221771234567"
                 langue: "fr"
                 scoreFiabilite: 92.5
                 possedeSonMateriel: true
                 agent:
                   id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad63"
-                  nom: "Awa Traoré"
+                  nom: "Aïssatou Ndiaye"
                   codeParrainage: "AGENT-001"
                 metiers:
                   -
@@ -334,7 +334,7 @@ paths:
                 zones:
                   -
                     id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
-                    nom: "Cocody"
+                    nom: "Médina"
                     niveau: "COMMUNE"
                     parentId: null
         404:
@@ -462,7 +462,7 @@ paths:
                 $ref: "#/components/schemas/WorkerPublicProfileDto"
               example:
                 id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
-                nom: "Kouassi Jean"
+                nom: "Moussa Diop"
                 scoreFiabilite: 92.5
                 metiers:
                   -
@@ -474,7 +474,7 @@ paths:
                 zones:
                   -
                     id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62"
-                    nom: "Cocody"
+                    nom: "Médina"
                     niveau: "COMMUNE"
                     parentId: null
         404:
@@ -1668,7 +1668,7 @@ paths:
                           value:
                             messages:
                               -
-                                from: "2250701020304"
+                                from: "221771234567"
                                 interactive:
                                   button_reply:
                                     id: "xeuysil:proposal:MISSION_UUID:accept"
@@ -1840,7 +1840,7 @@ paths:
           required: false
           in: "query"
           schema:
-            example: "+2250701"
+            example: "+2217712"
             type: "string"
       responses:
         200:
@@ -1936,7 +1936,7 @@ paths:
                 $ref: "#/components/schemas/AdminUserDto"
               example:
                 id: "c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61"
-                nom: "Kouassi Jean"
+                nom: "Moussa Diop"
                 role: "TRAVAILLEUR"
                 statut: "ACTIF"
                 isPremium: true
@@ -2555,6 +2555,8 @@ components:
           type: "string"
         telephone:
           type: "string"
+          example: "+221771234567"
+          pattern: "^\\+2217\\d{8}$"
         email:
           type: "string"
           format: "email"
@@ -2593,6 +2595,8 @@ components:
           type: "string"
         telephone:
           type: "string"
+          example: "+221771234567"
+          pattern: "^\\+2217\\d{8}$"
         typeRecruteur:
           type: "string"
           enum:
@@ -2660,10 +2664,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         langue:
           type: "string"
@@ -2753,7 +2757,7 @@ components:
           example: "Maçon"
         zone:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         statut:
           type: "string"
           enum:
@@ -2899,7 +2903,7 @@ components:
           example: "Maçon"
         zone:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         candidatesCount:
           type: "number"
           example: 4
@@ -2937,7 +2941,7 @@ components:
           format: "uuid"
         workerName:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         mission:
           type: "object"
           example: "Chantier de construction"
@@ -3001,7 +3005,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         scoreFiabilite:
           type: "object"
           example: 92.5
@@ -3037,7 +3041,7 @@ components:
           format: "date-time"
         workerName:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         missionId:
           type: "string"
           format: "uuid"
@@ -3245,10 +3249,10 @@ components:
           format: "email"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         role:
           type: "string"
@@ -3335,7 +3339,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Awa Traoré"
+          example: "Aïssatou Ndiaye"
         codeParrainage:
           type: "object"
           example: "AGENT-2026-001"
@@ -3376,7 +3380,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         niveau:
           type: "string"
           enum:
@@ -3401,10 +3405,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         langue:
           type: "string"
@@ -3534,7 +3538,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         photoUrl:
           type: "string"
           format: "uri"
@@ -3565,10 +3569,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         langue:
           type: "string"
@@ -3583,7 +3587,10 @@ components:
             - "ENTREPRISE"
         raisonSociale:
           type: "string"
-          example: "BTP Ivoire SARL"
+          example: "BTP Sénégal SARL"
+        isPremium:
+          type: "boolean"
+          example: false
         missionsCount:
           type: "number"
           example: 12
@@ -3597,6 +3604,7 @@ components:
         - "photoUrl"
         - "typeRecruteur"
         - "raisonSociale"
+        - "isPremium"
         - "missionsCount"
         - "createdAt"
     UpdateRecruiterDto:
@@ -3604,7 +3612,7 @@ components:
       properties:
         raisonSociale:
           type: "string"
-          example: "BTP Ivoire SARL"
+          example: "BTP Sénégal SARL"
           maxLength: 255
     AgentProfileDto:
       type: "object"
@@ -3614,10 +3622,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Awa Traoré"
+          example: "Aïssatou Ndiaye"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         langue:
           type: "string"
@@ -3631,8 +3639,11 @@ components:
           nullable: true
         perimetre:
           type: "object"
-          example: "Cocody, Abidjan"
+          example: "Médina, Dakar"
           nullable: true
+        isPremium:
+          type: "boolean"
+          example: false
         workersManaged:
           type: "number"
           example: 12
@@ -3644,6 +3655,7 @@ components:
         - "nom"
         - "langue"
         - "photoUrl"
+        - "isPremium"
         - "workersManaged"
         - "createdAt"
     UpdateAgentDto:
@@ -3651,7 +3663,7 @@ components:
       properties:
         perimetre:
           type: "string"
-          example: "Cocody, Abidjan"
+          example: "Médina, Dakar"
           maxLength: 2000
     AgentWorkerMetierDto:
       type: "object"
@@ -3677,7 +3689,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
       required:
         - "id"
         - "nom"
@@ -3689,10 +3701,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         photoUrl:
           type: "string"
@@ -3841,7 +3853,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
       required:
         - "id"
         - "nom"
@@ -4078,7 +4090,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         niveau:
           type: "string"
           enum:
@@ -4098,7 +4110,7 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Awa Traoré"
+          example: "Aïssatou Ndiaye"
         typeRecruteur:
           type: "string"
           enum:
@@ -4966,7 +4978,7 @@ components:
           nullable: true
         zone:
           type: "object"
-          example: "Cocody"
+          example: "Médina"
           nullable: true
         missionDate:
           type: "string"
@@ -5059,10 +5071,10 @@ components:
           format: "uuid"
         nom:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         telephone:
           type: "object"
-          example: "+2250701020304"
+          example: "+221771234567"
           nullable: true
         role:
           type: "string"
@@ -5169,7 +5181,7 @@ components:
           example: "Maçon"
         zone:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         recruteur:
           type: "string"
           example: "Entreprise XeuySil"
@@ -5291,7 +5303,7 @@ components:
           format: "uuid"
         workerName:
           type: "string"
-          example: "Kouassi Jean"
+          example: "Moussa Diop"
         missionId:
           type: "string"
           format: "uuid"
@@ -5512,7 +5524,7 @@ components:
       properties:
         nom:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         niveau:
           type: "string"
           enum:
@@ -5532,7 +5544,7 @@ components:
       properties:
         nom:
           type: "string"
-          example: "Cocody"
+          example: "Médina"
         niveau:
           type: "string"
           enum:

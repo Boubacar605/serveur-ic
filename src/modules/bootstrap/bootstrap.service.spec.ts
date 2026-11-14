@@ -31,8 +31,8 @@ describe('BootstrapService', () => {
     );
     prisma.profiles.findUnique.mockResolvedValue({
       id: user.id,
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       role: RoleEnum.TRAVAILLEUR,
       statut: StatutCompteEnum.ACTIF,
       langue: 'fr',
@@ -55,7 +55,7 @@ describe('BootstrapService', () => {
       user: {
         id: user.id,
         email: user.email,
-        nom: 'Kouassi Jean',
+        nom: 'Moussa Diop',
         role: RoleEnum.TRAVAILLEUR,
         statut: StatutCompteEnum.ACTIF,
       },

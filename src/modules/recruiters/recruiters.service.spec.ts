@@ -26,9 +26,9 @@ describe('RecruitersService', () => {
     prisma.recruteurs.findFirst.mockResolvedValue({
       userId: user.id,
       typeRecruteur: TypeRecruteurEnum.ENTREPRISE,
-      raisonSociale: 'BTP Ivoire SARL',
+      raisonSociale: 'BTP Sénégal SARL',
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      user: { nom: 'Kouassi Jean', telephone: '+2250701020304', langue: 'fr', photoUrl: null },
+      user: { nom: 'Moussa Diop', telephone: '+221771234567', langue: 'fr', photoUrl: null },
     });
     prisma.recruteurs.update.mockResolvedValue({});
     prisma.missions.count.mockResolvedValue(12);
@@ -37,12 +37,12 @@ describe('RecruitersService', () => {
   it('returns the recruiter profile with mission count and default avatar', async () => {
     await expect(service.getMe(user)).resolves.toEqual({
       id: 'recruiter-id',
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       langue: 'fr',
       photoUrl: 'avatar-default',
       typeRecruteur: TypeRecruteurEnum.ENTREPRISE,
-      raisonSociale: 'BTP Ivoire SARL',
+      raisonSociale: 'BTP Sénégal SARL',
       missionsCount: 12,
       createdAt: '2026-01-01T00:00:00.000Z',
     });
@@ -54,13 +54,13 @@ describe('RecruitersService', () => {
   });
 
   it('updates the company name and returns the refreshed profile', async () => {
-    await expect(service.updateMe(user, { raisonSociale: 'BTP Ivoire Group' })).resolves.toMatchObject({
+    await expect(service.updateMe(user, { raisonSociale: 'BTP Sénégal Group' })).resolves.toMatchObject({
       id: 'recruiter-id',
       missionsCount: 12,
     });
     expect(prisma.recruteurs.update).toHaveBeenCalledWith({
       where: { userId: 'recruiter-id' },
-      data: { raisonSociale: 'BTP Ivoire Group' },
+      data: { raisonSociale: 'BTP Sénégal Group' },
     });
   });
 

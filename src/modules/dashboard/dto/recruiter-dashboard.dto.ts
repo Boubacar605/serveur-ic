@@ -16,7 +16,7 @@ export class RecruiterDashboardMissionDto {
   @ApiProperty({ format: 'date' }) dateMission!: string;
   @ApiProperty({ enum: StatutMissionEnum }) statut!: StatutMissionEnum;
   @ApiProperty({ example: 'Maçon' }) metier!: string;
-  @ApiProperty({ example: 'Cocody' }) zone!: string;
+  @ApiProperty({ example: 'Médina' }) zone!: string;
   @ApiProperty({ example: 4 }) candidatesCount!: number;
 }
 
@@ -25,7 +25,7 @@ export class RecruiterDashboardApplicationDto {
   @ApiProperty({ enum: StatutCandidatureEnum }) statut!: StatutCandidatureEnum;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
   @ApiProperty({ format: 'uuid' }) missionId!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) workerName!: string;
+  @ApiProperty({ example: 'Moussa Diop' }) workerName!: string;
   @ApiProperty({ example: 'Chantier de construction' }) mission!: string | null;
 }
 

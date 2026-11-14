@@ -78,11 +78,11 @@ describe('MissionsService', () => {
     updatedAt: new Date('2026-11-11T09:00:00.000Z'),
     deletedAt: null,
     metier: { id: 'job-id', code: 'MACON', libelle: 'Maçon', categorie: 'BTP' },
-    zone: { id: 'zone-id', nom: 'Cocody', niveau: NiveauZoneEnum.COMMUNE },
+    zone: { id: 'zone-id', nom: 'Médina', niveau: NiveauZoneEnum.COMMUNE },
     recruteur: {
       typeRecruteur: TypeRecruteurEnum.ENTREPRISE,
       raisonSociale: 'XeuySil Services',
-      user: { id: 'recruiter-id', nom: 'Awa Traoré' },
+      user: { id: 'recruiter-id', nom: 'Aïssatou Ndiaye' },
     },
     _count: { candidatures: 2 },
   });
@@ -157,8 +157,8 @@ describe('MissionsService', () => {
       nombreConfirmations: 2,
       placesRestantes: 1,
       metier: { code: 'MACON' },
-      zone: { nom: 'Cocody' },
-      recruteur: { nom: 'Awa Traoré' },
+      zone: { nom: 'Médina' },
+      recruteur: { nom: 'Aïssatou Ndiaye' },
     });
     expect(prisma.confirmations.count).toHaveBeenCalledWith({
       where: { candidature: { is: { missionId: 'mission-id' } } },

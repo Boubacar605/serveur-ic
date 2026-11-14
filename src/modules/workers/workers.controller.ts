@@ -35,14 +35,14 @@ export class WorkersController {
     type: WorkerProfileResponseDto,
     example: {
       id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61',
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       langue: 'fr',
       scoreFiabilite: 92.5,
       possedeSonMateriel: true,
-      agent: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad63', nom: 'Awa Traoré', codeParrainage: 'AGENT-001' },
+      agent: { id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad63', nom: 'Aïssatou Ndiaye', codeParrainage: 'AGENT-001' },
       metiers: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad64', code: 'MACON', libelle: 'Maçon', categorie: 'BTP', experienceAnnees: 4 }],
-      zones: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62', nom: 'Cocody', niveau: 'COMMUNE', parentId: null }],
+      zones: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62', nom: 'Médina', niveau: 'COMMUNE', parentId: null }],
     },
   })
   @ApiNotFoundResponse({ description: 'Worker profile not found' })
@@ -119,10 +119,10 @@ export class WorkersController {
     type: WorkerPublicProfileDto,
     example: {
       id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad61',
-      nom: 'Kouassi Jean',
+      nom: 'Moussa Diop',
       scoreFiabilite: 92.5,
       metiers: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad64', code: 'MACON', libelle: 'Maçon', categorie: 'BTP', experienceAnnees: 4 }],
-      zones: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62', nom: 'Cocody', niveau: 'COMMUNE', parentId: null }],
+      zones: [{ id: 'c3ac3a1a-2db1-4ef2-a058-7a2c31d1ad62', nom: 'Médina', niveau: 'COMMUNE', parentId: null }],
     },
   })
   @ApiNotFoundResponse({ description: 'Worker profile not found' })

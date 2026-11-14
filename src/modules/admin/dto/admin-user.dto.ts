@@ -3,8 +3,8 @@ import { RoleEnum, StatutCompteEnum } from '@prisma/client';
 
 export class AdminUserDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) nom!: string;
-  @ApiProperty({ example: '+2250701020304', nullable: true }) telephone!: string | null;
+  @ApiProperty({ example: 'Moussa Diop' }) nom!: string;
+  @ApiProperty({ example: '+221771234567', nullable: true }) telephone!: string | null;
   @ApiProperty({ enum: RoleEnum }) role!: RoleEnum;
   @ApiProperty({ enum: StatutCompteEnum }) statut!: StatutCompteEnum;
   @ApiProperty({ example: false }) isPremium!: boolean;

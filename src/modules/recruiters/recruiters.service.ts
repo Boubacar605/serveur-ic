@@ -22,7 +22,7 @@ export class RecruitersService {
         typeRecruteur: true,
         raisonSociale: true,
         createdAt: true,
-        user: { select: { nom: true, telephone: true, langue: true, photoUrl: true } },
+        user: { select: { nom: true, telephone: true, langue: true, photoUrl: true, isPremium: true } },
       },
     });
     if (!recruiter) throw new NotFoundException('Recruiter profile not found');
@@ -37,6 +37,7 @@ export class RecruitersService {
       photoUrl: this.avatars.resolve(recruiter.user.photoUrl),
       typeRecruteur: recruiter.typeRecruteur,
       raisonSociale: recruiter.raisonSociale,
+      isPremium: recruiter.user.isPremium,
       missionsCount,
       createdAt: recruiter.createdAt.toISOString(),
     };

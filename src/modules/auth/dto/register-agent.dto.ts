@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { Match } from './match.decorator';
 
 export class RegisterAgentDto {
@@ -9,10 +9,9 @@ export class RegisterAgentDto {
   @MaxLength(255)
   nom!: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '+221771234567' })
   @IsString()
-  @IsNotEmpty()
-  @MaxLength(30)
+  @Matches(/^\+2217\d{8}$/, { message: 'telephone must be a Senegalese mobile number (+2217XXXXXXXX)' })
   telephone!: string;
 
   @ApiProperty({ format: 'email' })

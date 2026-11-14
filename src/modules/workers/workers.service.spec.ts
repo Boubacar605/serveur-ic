@@ -36,10 +36,10 @@ describe('WorkersService', () => {
     userId: 'worker-id',
     scoreFiabilite: { toString: () => '92.5' },
     possedeSonMateriel: true,
-    user: { id: 'worker-id', nom: 'Kouassi Jean', telephone: '+2250701020304', langue: 'fr', photoUrl: null },
-    agent: { userId: 'agent-id', codeParrainage: 'AGENT-001', user: { nom: 'Awa Traoré' } },
+    user: { id: 'worker-id', nom: 'Moussa Diop', telephone: '+221771234567', langue: 'fr', photoUrl: null },
+    agent: { userId: 'agent-id', codeParrainage: 'AGENT-001', user: { nom: 'Aïssatou Ndiaye' } },
     profilMetiers: [{ metier: { id: 'job-id', code: 'MACON', libelle: 'Maçon', categorie: 'BTP' }, experienceAnnees: 4 }],
-    travailleurZones: [{ zone: { id: 'zone-id', nom: 'Cocody', niveau: 'COMMUNE', parentId: null } }],
+    travailleurZones: [{ zone: { id: 'zone-id', nom: 'Médina', niveau: 'COMMUNE', parentId: null } }],
   };
 
   beforeEach(() => {
@@ -59,15 +59,15 @@ describe('WorkersService', () => {
   it('hydrates the private worker profile, agent, jobs, and zones', async () => {
     await expect(service.getMyProfile('worker-id')).resolves.toEqual({
       id: 'worker-id',
-      nom: 'Kouassi Jean',
-      telephone: '+2250701020304',
+      nom: 'Moussa Diop',
+      telephone: '+221771234567',
       langue: 'fr',
       photoUrl: 'http://localhost:3000/api/v1/avatars/default.svg',
       scoreFiabilite: 92.5,
       possedeSonMateriel: true,
-      agent: { id: 'agent-id', nom: 'Awa Traoré', codeParrainage: 'AGENT-001' },
+      agent: { id: 'agent-id', nom: 'Aïssatou Ndiaye', codeParrainage: 'AGENT-001' },
       metiers: [{ id: 'job-id', code: 'MACON', libelle: 'Maçon', categorie: 'BTP', experienceAnnees: 4 }],
-      zones: [{ id: 'zone-id', nom: 'Cocody', niveau: 'COMMUNE', parentId: null }],
+      zones: [{ id: 'zone-id', nom: 'Médina', niveau: 'COMMUNE', parentId: null }],
     });
     expect(prisma.travailleurs.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: { userId: 'worker-id', deletedAt: null },

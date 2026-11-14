@@ -42,10 +42,10 @@ describe('AgentsService', () => {
     );
     prisma.agents.findFirst.mockResolvedValue({
       userId: user.id,
-      perimetre: 'Cocody',
+      perimetre: 'Médina',
       codeParrainage: 'AGENT-001',
       createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      user: { nom: 'Awa Traoré', telephone: '+2250701020304', langue: 'fr', photoUrl: null },
+      user: { nom: 'Aïssatou Ndiaye', telephone: '+221771234567', langue: 'fr', photoUrl: null },
     });
     prisma.agents.update.mockResolvedValue({});
     prisma.travailleurs.count.mockResolvedValue(3);
@@ -77,12 +77,12 @@ describe('AgentsService', () => {
   it('returns the agent profile with the default avatar and managed worker count', async () => {
     await expect(service.getMe(user)).resolves.toEqual({
       id: 'agent-id',
-      nom: 'Awa Traoré',
-      telephone: '+2250701020304',
+      nom: 'Aïssatou Ndiaye',
+      telephone: '+221771234567',
       langue: 'fr',
       photoUrl: 'avatar-default',
       codeParrainage: 'AGENT-001',
-      perimetre: 'Cocody',
+      perimetre: 'Médina',
       workersManaged: 3,
       createdAt: '2026-01-01T00:00:00.000Z',
     });
@@ -155,9 +155,9 @@ describe('AgentsService', () => {
         scoreFiabilite: { toString: () => '92.5' },
         possedeSonMateriel: true,
         createdAt: new Date('2026-02-01T00:00:00.000Z'),
-        user: { nom: 'Kouassi Jean', telephone: '+2250701020304', photoUrl: null },
+        user: { nom: 'Moussa Diop', telephone: '+221771234567', photoUrl: null },
         profilMetiers: [{ experienceAnnees: 4, metier: { id: 'job-id', libelle: 'Maçon' } }],
-        travailleurZones: [{ zone: { id: 'zone-id', nom: 'Cocody' } }],
+        travailleurZones: [{ zone: { id: 'zone-id', nom: 'Médina' } }],
         _count: { candidatures: 3 },
       },
     ]);
@@ -170,7 +170,7 @@ describe('AgentsService', () => {
         photoUrl: 'avatar-default',
         scoreFiabilite: 92.5,
         metiers: [{ id: 'job-id', libelle: 'Maçon', experienceAnnees: 4 }],
-        zones: [{ id: 'zone-id', nom: 'Cocody' }],
+        zones: [{ id: 'zone-id', nom: 'Médina' }],
         applicationsCount: 3,
       }],
     });

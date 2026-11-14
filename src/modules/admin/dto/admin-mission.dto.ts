@@ -8,7 +8,7 @@ export class AdminMissionDto {
   @ApiProperty({ enum: StatutMissionEnum }) statut!: StatutMissionEnum;
   @ApiProperty({ format: 'date' }) dateMission!: string;
   @ApiProperty({ example: 'Maçon' }) metier!: string;
-  @ApiProperty({ example: 'Cocody' }) zone!: string;
+  @ApiProperty({ example: 'Médina' }) zone!: string;
   @ApiProperty({ example: 'Entreprise XeuySil' }) recruteur!: string;
   @ApiProperty({ example: 3 }) nombrePostes!: number;
   @ApiProperty({ example: 15000 }) remunerationFcfa!: number;

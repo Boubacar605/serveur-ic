@@ -11,7 +11,7 @@ export class AgentDashboardStatsDto {
 
 export class AgentDashboardWorkerDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) nom!: string;
+  @ApiProperty({ example: 'Moussa Diop' }) nom!: string;
   @ApiProperty({ example: 92.5, nullable: true }) scoreFiabilite!: number | null;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
 }
@@ -20,7 +20,7 @@ export class AgentDashboardActivityDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
   @ApiProperty({ enum: StatutCandidatureEnum }) statut!: StatutCandidatureEnum;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
-  @ApiProperty({ example: 'Kouassi Jean' }) workerName!: string;
+  @ApiProperty({ example: 'Moussa Diop' }) workerName!: string;
   @ApiProperty({ format: 'uuid' }) missionId!: string;
   @ApiProperty({ example: 'Chantier de construction' }) mission!: string | null;
 }

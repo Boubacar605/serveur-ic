@@ -220,6 +220,7 @@ export class AuthService {
         statut: true,
         langue: true,
         photoUrl: true,
+        isPremium: true,
       },
     });
     if (!profile || profile.statut !== StatutCompteEnum.ACTIF) {
@@ -242,10 +243,10 @@ export class AuthService {
   private async withProfile(tokens: AuthTokens): Promise<AuthTokens> {
     const profile = await this.prisma.profiles.findUnique({
       where: { id: tokens.user.id },
-      select: { nom: true, role: true, statut: true },
+      select: { nom: true, role: true, statut: true, isPremium: true },
     });
     if (profile) {
-      tokens.user = { ...tokens.user, nom: profile.nom, role: profile.role, statut: profile.statut };
+      tokens.user = { ...tokens.user, nom: profile.nom, role: profile.role, statut: profile.statut, isPremium: profile.isPremium };
     }
     return tokens;
   }
