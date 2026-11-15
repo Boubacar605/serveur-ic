@@ -84,6 +84,25 @@ $ pnpm prisma:baseline
 $ pnpm prisma:deploy
 ```
 
+## Initial administrator accounts
+
+At startup the backend ensures five confirmed administrator accounts exist
+(`malickadmin@gmail.com`, `boubacaradmin@gmail.com`, `ibrahimaadmin@gmail.com`,
+`mariamacireadmin@gmail.com`, `seyniadmin@gmail.com`). The initial password is the
+one defined by the seed, and should be changed after the first login.
+
+The accounts are created through the Supabase Admin API and their profiles are
+upserted into `public.profiles`, because the business PostgreSQL container does
+not host Supabase's `auth` schema. The seed therefore also works when
+`DATABASE_URL` points to the local container. Existing accounts are reused, never
+deleted. Disable the seed with `SEED_ADMIN_ACCOUNTS=false`.
+
+The SQL migration `20261114000200_seed_admin_accounts` remains available for
+databases that do host the `auth` schema. It first deletes the previous rows of
+these five accounts (profile, identity and user, matched by fixed id or e-mail)
+and then recreates them confirmed, so replaying it never hits uniqueness
+conflicts.
+
 ## Profile pictures
 
 `POST /api/v1/profile/photo` (multipart, field `file`, 2 MB max, JPEG/PNG/WebP) uploads the image to the Supabase Storage bucket configured by `SUPABASE_PICTURE_BUCKET` (default `pictureProfile`) and stores the public URL in `profiles.photo_url`. `DELETE /api/v1/profile/photo` removes it.

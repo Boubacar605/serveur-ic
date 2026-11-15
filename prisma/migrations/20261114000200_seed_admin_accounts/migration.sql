@@ -1,7 +1,9 @@
 -- Comptes administrateur initiaux.
 -- ⚠️  Mot de passe commun : Admin12345 — à changer dès la première connexion.
--- Migration idempotente : si un compte existe déjà (même e-mail), il est réutilisé,
--- son mot de passe est réinitialisé et son profil est promu ADMINISTRATEUR.
+-- Migration rejouable : les 5 comptes sont d'abord purgés (identités, utilisateur
+-- Supabase et profil local, retrouvés par identifiant fixe ou par e-mail), puis
+-- recréés confirmés. Cela évite les conflits d'unicité si une exécution précédente
+-- a déjà inséré ces comptes.
 -- Le schéma `auth` est fourni par Supabase ; sur une base sans Supabase Auth,
 -- la migration ne fait rien (les profils seuls seraient inutilisables).
 
@@ -12,6 +14,20 @@ DECLARE
   admin record;
   uid uuid;
   crypto_schema text;
+  admin_ids uuid[] := ARRAY[
+    'a1b2c3d4-0000-4000-8000-000000000001'::uuid,
+    'a1b2c3d4-0000-4000-8000-000000000002'::uuid,
+    'a1b2c3d4-0000-4000-8000-000000000003'::uuid,
+    'a1b2c3d4-0000-4000-8000-000000000004'::uuid,
+    'a1b2c3d4-0000-4000-8000-000000000005'::uuid
+  ];
+  admin_emails text[] := ARRAY[
+    'malickadmin@gmail.com',
+    'boubacaradmin@gmail.com',
+    'ibrahimaadmin@gmail.com',
+    'mariamacireadmin@gmail.com',
+    'seyniadmin@gmail.com'
+  ];
 BEGIN
   IF to_regclass('auth.users') IS NULL THEN
     RAISE NOTICE 'Schéma auth de Supabase absent : création des comptes administrateur ignorée.';
@@ -31,6 +47,20 @@ BEGIN
     RAISE EXCEPTION 'pgcrypto est requis pour hacher les mots de passe administrateur.';
   END IF;
 
+  -- Purge préalable : profil métier, identité puis utilisateur Supabase.
+  -- L'ordre respecte les dépendances (profil et identité référencent l'utilisateur).
+  DELETE FROM public.profiles
+   WHERE id = ANY(admin_ids)
+      OR id IN (SELECT id FROM auth.users WHERE lower(email) = ANY(admin_emails));
+
+  DELETE FROM auth.identities
+   WHERE user_id = ANY(admin_ids)
+      OR user_id IN (SELECT id FROM auth.users WHERE lower(email) = ANY(admin_emails));
+
+  DELETE FROM auth.users
+   WHERE id = ANY(admin_ids)
+      OR lower(email) = ANY(admin_emails);
+
   FOR admin IN
     SELECT *
       FROM (VALUES
@@ -41,32 +71,20 @@ BEGIN
         ('seyniadmin@gmail.com',       'Seyni',        'a1b2c3d4-0000-4000-8000-000000000005'::uuid)
       ) AS t(email, nom, id)
   LOOP
-    SELECT id INTO uid FROM auth.users WHERE lower(email) = admin.email LIMIT 1;
-
-    IF uid IS NULL THEN
-      uid := admin.id;
-      EXECUTE format($sql$
-        INSERT INTO auth.users (
-          instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-          raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
-          confirmation_token, email_change, email_change_token_new, recovery_token
-        ) VALUES (
-          '00000000-0000-0000-0000-000000000000', $1, 'authenticated', 'authenticated', $2,
-          %1$I.crypt('Admin12345', %1$I.gen_salt('bf', 10)), now(),
-          '{"provider":"email","providers":["email"]}'::jsonb,
-          jsonb_build_object('nom', $3),
-          now(), now(), '', '', '', ''
-        )
-      $sql$, crypto_schema) USING uid, admin.email, admin.nom;
-    ELSE
-      EXECUTE format($sql$
-        UPDATE auth.users
-           SET encrypted_password = %1$I.crypt('Admin12345', %1$I.gen_salt('bf', 10)),
-               email_confirmed_at = COALESCE(email_confirmed_at, now()),
-               updated_at = now()
-         WHERE id = $1
-      $sql$, crypto_schema) USING uid;
-    END IF;
+    uid := admin.id;
+    EXECUTE format($sql$
+      INSERT INTO auth.users (
+        instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+        raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+        confirmation_token, email_change, email_change_token_new, recovery_token
+      ) VALUES (
+        '00000000-0000-0000-0000-000000000000', $1, 'authenticated', 'authenticated', $2,
+        %1$I.crypt('Admin12345', %1$I.gen_salt('bf', 10)), now(),
+        '{"provider":"email","providers":["email"]}'::jsonb,
+        jsonb_build_object('nom', $3),
+        now(), now(), '', '', '', ''
+      )
+    $sql$, crypto_schema) USING uid, admin.email, admin.nom;
 
     INSERT INTO auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
     VALUES (

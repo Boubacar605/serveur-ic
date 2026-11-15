@@ -8,6 +8,7 @@ import {
 import {
   PeriodeDispoEnum,
   Prisma,
+  StatutCandidatureEnum,
   StatutCompteEnum,
   StatutMessageEnum,
   StatutMissionEnum,
@@ -54,6 +55,7 @@ interface BroadcastMission {
   zoneId: string;
   dateMission: Date;
   statut: StatutMissionEnum;
+  nombrePostes: number;
   typeHoraire: TypeHoraireEnum | null;
   heureDebut: Date | null;
   heureFin: Date | null;
@@ -377,6 +379,7 @@ export class NotificationsService {
         zoneId: true,
         dateMission: true,
         statut: true,
+        nombrePostes: true,
         typeHoraire: true,
         heureDebut: true,
         heureFin: true,
@@ -385,6 +388,14 @@ export class NotificationsService {
     if (!mission) throw new NotFoundException('Mission not found');
     if (mission.recruteurId !== recruiterId) throw new ForbiddenException('You do not own this mission');
     if (!this.isMissionActive(mission)) throw new ConflictException('Mission is not active for broadcast');
+    // Filet de sécurité : même si le statut n'a pas encore été recalculé, une mission
+    // dont tous les postes sont couverts ne doit plus être proposée à personne.
+    const confirmed = await this.prisma.candidatures.count({
+      where: { missionId: mission.id, statut: StatutCandidatureEnum.CONFIRMEE },
+    });
+    if (confirmed >= mission.nombrePostes) {
+      throw new ConflictException('Mission is full and no longer accepts proposals');
+    }
 
     const workers = await this.prisma.travailleurs.findMany({
       where: {

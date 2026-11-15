@@ -36,20 +36,24 @@ export class AuthService {
       throw new BadRequestException('confirmationPassword must match password');
     }
 
+    // Le code est saisi librement (lien partagé, copier-coller) : on le normalise
+    // avant la recherche, les codes étant stockés en majuscules.
+    const referralCode = dto.agentReferralCode?.trim().toUpperCase() || null;
+    // Validé avant la création du compte Supabase : un code erroné ne doit pas
+    // envoyer de mail de confirmation pour un compte que l'on annulerait aussitôt.
+    const agent = referralCode
+      ? await this.prisma.agents.findUnique({
+          where: { codeParrainage: referralCode },
+          select: { userId: true },
+        })
+      : null;
+    if (referralCode && !agent) {
+      throw new NotFoundException('Agent referral code not found');
+    }
+
     const { user } = await this.supabase.createUser(dto.email, dto.password);
     try {
       await this.prisma.$transaction(async (transaction) => {
-        const agent = dto.agentReferralCode
-          ? await transaction.agents.findUnique({
-              where: { codeParrainage: dto.agentReferralCode },
-              select: { userId: true },
-            })
-          : null;
-
-        if (dto.agentReferralCode && !agent) {
-          throw new NotFoundException('Agent referral code not found');
-        }
-
         await transaction.profiles.create({
           data: {
             id: user.id,
