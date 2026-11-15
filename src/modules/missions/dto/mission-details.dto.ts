@@ -6,5 +6,5 @@ export class MissionDetailsDto extends MissionResponseDto {
   nombreConfirmations!: number;
 
   @ApiProperty({ example: 1 })
-  placesRestantes!: number;
+  declare placesRestantes: number;
 }

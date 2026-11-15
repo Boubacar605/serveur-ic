@@ -21,7 +21,7 @@ export class OptionalJwtAuthGuard implements CanActivate {
     const match = request.headers.authorization?.match(/^Bearer\s+(\S+)$/i);
     if (!match) return true;
 
-    let supabaseUser: { id: string; email: string | null };
+    let supabaseUser: { id: string; email?: string };
     try {
       supabaseUser = await this.supabaseService.validateJwt(match[1]);
     } catch {
