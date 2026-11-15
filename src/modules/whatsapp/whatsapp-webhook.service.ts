@@ -337,7 +337,7 @@ export class WhatsappWebhookService {
       });
       if (!application) throw new NotFoundException('Application not found');
       if (application.travailleurId !== workerId) throw new ForbiddenException('Application does not belong to WhatsApp sender');
-      if ([StatutCandidatureEnum.REFUSEE, StatutCandidatureEnum.RETIREE].includes(application.statut)) return;
+      if (application.statut === StatutCandidatureEnum.REFUSEE || application.statut === StatutCandidatureEnum.RETIREE) return;
       if (application.statut !== StatutCandidatureEnum.SELECTIONNEE) {
         throw new ConflictException('Only a selected application can be declined');
       }
