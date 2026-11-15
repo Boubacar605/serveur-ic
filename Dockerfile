@@ -34,10 +34,8 @@ COPY prisma ./prisma
 
 # `prisma` and `@prisma/client` are production dependencies: the entrypoint
 # runs `prisma migrate deploy`, and the generated client must match the schema.
-# Le client Prisma est copié depuis le stage `build` pour éviter un retéléchargement des binaires.
-RUN pnpm install --frozen-lockfile --prod
-
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+RUN pnpm install --frozen-lockfile --prod \
+  && pnpm prisma generate
 
 # --- Runtime ----------------------------------------------------------------
 FROM base AS runtime
