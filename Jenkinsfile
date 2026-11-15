@@ -75,7 +75,7 @@ pipeline {
 
         stage('Construction de l\'image Docker') {
             steps {
-                sh "docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ${HOST_WS}"
+                sh "docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
             }
         }
 
