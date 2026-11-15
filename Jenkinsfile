@@ -99,9 +99,6 @@ pipeline {
     }
 
     post {
-        always {
-            cleanWs()
-        }
         success {
             echo 'Pipeline backend terminé avec succès.'
         }
