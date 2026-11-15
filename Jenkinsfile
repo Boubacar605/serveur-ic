@@ -3,7 +3,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE    = 'xeuysil/serveur'
+        DOCKER_IMAGE    = 'boubacar605/xeuysil-serveur'
         DOCKER_TAG      = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'latest'}"
         DOCKERHUB_CREDS = credentials('dockerhub-credentials')
     }
