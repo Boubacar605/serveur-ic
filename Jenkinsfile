@@ -6,6 +6,8 @@ pipeline {
         DOCKER_IMAGE    = 'boubacar605/xeuysil-serveur'
         DOCKER_TAG      = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'latest'}"
         DOCKERHUB_CREDS = credentials('dockerhub-credentials')
+        /* Chemin réel du workspace sur l'hôte (résout le problème des volumes Docker-in-Docker) */
+        HOST_WS         = "${env.JENKINS_HOME_HOST}/workspace/${env.JOB_NAME}"
     }
 
     stages {
@@ -20,7 +22,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network host \
-                        -v "$(pwd)":/app -w /app \
+                        -v "${HOST_WS}:/app" -w /app \
                         node:22-alpine \
                         sh -c "npm install -g pnpm@10.28.1 && pnpm install --frozen-lockfile"
                 '''
@@ -31,7 +33,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network host \
-                        -v "$(pwd)":/app -w /app \
+                        -v "${HOST_WS}:/app" -w /app \
                         node:22-alpine \
                         sh -c "npm install -g pnpm@10.28.1 && pnpm lint || true"
                 '''
@@ -42,7 +44,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network host \
-                        -v "$(pwd)":/app -w /app \
+                        -v "${HOST_WS}:/app" -w /app \
                         node:22-alpine \
                         sh -c "npm install -g pnpm@10.28.1 && npx prisma generate"
                 '''
@@ -53,7 +55,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network host \
-                        -v "$(pwd)":/app -w /app \
+                        -v "${HOST_WS}:/app" -w /app \
                         node:22-alpine \
                         sh -c "npm install -g pnpm@10.28.1 && pnpm build"
                 '''
@@ -64,7 +66,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network host \
-                        -v "$(pwd)":/app -w /app \
+                        -v "${HOST_WS}:/app" -w /app \
                         node:22-alpine \
                         sh -c "npm install -g pnpm@10.28.1 && pnpm test || true"
                 '''
@@ -73,13 +75,13 @@ pipeline {
 
         stage('Construction de l\'image Docker') {
             steps {
-                sh "docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
+                sh "docker build --network host -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ${HOST_WS}"
             }
         }
 
         stage('Analyse de vulnérabilités (Trivy)') {
             steps {
-                sh "docker run --rm aquasec/trivy:latest image --exit-code 0 --severity CRITICAL ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
+                sh "docker run --rm --network host aquasec/trivy:latest image --exit-code 0 --severity CRITICAL ${DOCKER_IMAGE}:${DOCKER_TAG} || true"
             }
         }
 
