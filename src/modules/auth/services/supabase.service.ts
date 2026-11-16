@@ -12,6 +12,9 @@ import { AuthTokens } from '../interfaces/auth-tokens.interface';
 
 @Injectable()
 export class SupabaseService {
+  /** Annuaire chargé à la demande, partagé par les amorçages de comptes. */
+  private userDirectory: User[] | null = null;
+
   constructor(private readonly configService: ConfigService) {}
 
   /**
@@ -62,6 +65,55 @@ export class SupabaseService {
     }
     if (!data.user) throw new ServiceUnavailableException('Supabase did not return the created user');
     return data.user;
+  }
+
+  /**
+   * Amorçage idempotent : crée un compte confirmé, ou réutilise le compte
+   * existant (même e-mail) pour permettre la promotion du profil local.
+   * Nécessaire car la base métier (PostgreSQL local) ne contient pas le
+   * schéma `auth` de Supabase : un simple INSERT SQL ne peut pas créer
+   * ces utilisateurs.
+   */
+  async ensureConfirmedUser(email: string, password: string): Promise<User> {
+    const normalized = email.trim().toLowerCase();
+    const admin = this.createAdminClient();
+    const { data, error } = await admin.auth.admin.createUser({
+      email: normalized,
+      password,
+      email_confirm: true,
+    });
+    if (!error) {
+      if (!data.user) throw new ServiceUnavailableException('Supabase did not return the created user');
+      return data.user;
+    }
+    const message = error.message.toLowerCase();
+    if (!message.includes('already') && !message.includes('exists')) {
+      throw new ServiceUnavailableException(`Supabase n'a pas pu créer le compte ${normalized}.`);
+    }
+    const existing = await this.findUserByEmail(normalized);
+    if (!existing) {
+      throw new ServiceUnavailableException(`Le compte ${normalized} existe déjà mais son identifiant est introuvable.`);
+    }
+    if (!existing.email_confirmed_at) {
+      await admin.auth.admin.updateUserById(existing.id, { email_confirm: true });
+    }
+    return existing;
+  }
+
+  private async findUserByEmail(email: string): Promise<User | null> {
+    const wanted = email.trim().toLowerCase();
+    if (!this.userDirectory) {
+      const admin = this.createAdminClient();
+      const users: User[] = [];
+      for (let page = 1; page <= 1000; page += 1) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 100 });
+        if (error) throw new ServiceUnavailableException('Impossible de lister les comptes Supabase.');
+        users.push(...data.users);
+        if (data.users.length < 100) break;
+      }
+      this.userDirectory = users;
+    }
+    return this.userDirectory.find((user) => (user.email ?? '').toLowerCase() === wanted) ?? null;
   }
 
   async resendConfirmation(email: string): Promise<void> {

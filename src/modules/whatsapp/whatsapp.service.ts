@@ -39,6 +39,7 @@ interface MissionContext extends MissionMessageDetails {
   metierId: string;
   zoneId: string;
   statut: StatutMissionEnum;
+  nombrePostes: number;
   typeHoraire: TypeHoraireEnum | null;
   heureDebut: Date | null;
   heureFin: Date | null;
@@ -83,6 +84,12 @@ export class WhatsappService {
       throw new ConflictException('Mission is not active');
     }
     if (mission.dateMission < this.startOfToday()) throw new ConflictException('Mission is no longer active');
+    // Une mission dont tous les postes sont confirmés ne doit plus être proposée,
+    // même si son statut n'a pas encore été recalculé.
+    const confirmed = await this.prisma.candidatures.count({
+      where: { missionId: mission.id, statut: StatutCandidatureEnum.CONFIRMEE },
+    });
+    if (confirmed >= mission.nombrePostes) throw new ConflictException('Mission is full and no longer accepts proposals');
     if (user.role === RoleEnum.RECRUTEUR) this.assertMissionSender(user, mission.recruteurId);
     else if (user.role !== RoleEnum.AGENT) throw new ForbiddenException('Only recruiters and agents can send proposals');
 
@@ -289,6 +296,7 @@ export class WhatsappService {
         metierId: true,
         zoneId: true,
         statut: true,
+        nombrePostes: true,
         dateMission: true,
         remunerationFcfa: true,
         description: true,
@@ -306,6 +314,7 @@ export class WhatsappService {
       metierId: mission.metierId,
       zoneId: mission.zoneId,
       statut: mission.statut,
+      nombrePostes: mission.nombrePostes,
       description: mission.description,
       dateMission: mission.dateMission,
       remunerationFcfa: mission.remunerationFcfa,
